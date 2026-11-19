@@ -1,0 +1,511 @@
+export interface MedalsCount {
+  gold: number;
+  silver: number;
+  bronze: number;
+}
+
+export interface UserProfile {
+  id: string;
+  nickname: string;
+  email: string;
+  avatar: string;
+  bio: string;
+  authProvider: "guest" | "google" | "email";
+  createdAt: string;
+  level: number;
+  xp: number;
+  coins: number; // Накопленные баллы/монеты мастерства
+  ratingRu: number;
+  ratingEn: number;
+  preferredLayout: "ru" | "en";
+  goalCpm: number;
+  goalDays: number;
+  achievements: string[];
+  medals: MedalsCount;
+  unlockedAvatars: string[];
+  unlockedTitles: string[];
+  activeTitle: string;
+  streakDays: number;
+  lastActiveDate: string;
+  totalMatches: number;
+  wins: number;
+}
+
+export type League = "Бронза" | "Серебро" | "Золото" | "Платина" | "Чемпион";
+
+export function getLeague(rating: number): { name: League; color: string; minElo: number } {
+  if (rating >= 1800) return { name: "Чемпион", color: "#FFD700", minElo: 1800 };
+  if (rating >= 1600) return { name: "Платина", color: "#00E5FF", minElo: 1600 };
+  if (rating >= 1400) return { name: "Золото", color: "#FFA726", minElo: 1400 };
+  if (rating >= 1200) return { name: "Серебро", color: "#B0BEC5", minElo: 1200 };
+  return { name: "Бронза", color: "#CD7F32", minElo: 0 };
+}
+
+export interface ChessRankInfo {
+  title: string;
+  code: string;
+  badge: string;
+  color: string;
+  minElo: number;
+  description: string;
+}
+
+export function getChessRank(rating: number): ChessRankInfo {
+  if (rating >= 2000) {
+    return {
+      title: "Гроссмейстер слепой печати (GM)",
+      code: "GM",
+      badge: "👑 GM",
+      color: "#FFD700",
+      minElo: 2000,
+      description: "Высшее звание. Безупречный ритм, филигранная точность свыше 400 CPM.",
+    };
+  }
+  if (rating >= 1700) {
+    return {
+      title: "Международный мастер (IM)",
+      code: "IM",
+      badge: "⭐ IM",
+      color: "#E040FB",
+      minElo: 1700,
+      description: "Элита скоростной печати. Победы в рапиде и блице против сильнейших.",
+    };
+  }
+  if (rating >= 1400) {
+    return {
+      title: "Мастер скорости (FM)",
+      code: "FM",
+      badge: "⚔️ FM",
+      color: "#00E5FF",
+      minElo: 1400,
+      description: "Уверенная слепая десятипальцевая печать без взглядов на клавиатуру.",
+    };
+  }
+  if (rating >= 1200) {
+    return {
+      title: "Кандидат в мастера (CM)",
+      code: "CM",
+      badge: "♟️ CM",
+      color: "#69F0AE",
+      minElo: 1200,
+      description: "Стабильный темп, владение всеми рядами и знаками препинания.",
+    };
+  }
+  if (rating >= 1000) {
+    return {
+      title: "Любитель 1-го разряда",
+      code: "1Р",
+      badge: "🎯 1Р",
+      color: "#FFD54F",
+      minElo: 1000,
+      description: "Базовый уровень соревнований. Регулярная практика и первые победы.",
+    };
+  }
+  return {
+    title: "Новичок",
+    code: "НОВИЧОК",
+    badge: "🌱 Новичок",
+    color: "#90A4AE",
+    minElo: 0,
+    description: "Начало пути слепого десятипальцевого метода.",
+  };
+}
+
+export interface Achievement {
+  code: string;
+  title: string;
+  description: string;
+  icon: string;
+  xpReward: number;
+  coinReward: number;
+}
+
+export const ACHIEVEMENTS_LIST: Achievement[] = [
+  {
+    code: "first_step",
+    title: "Первый шаг",
+    description: "Завершите любую тренировку или урок печати",
+    icon: "🎯",
+    xpReward: 50,
+    coinReward: 25,
+  },
+  {
+    code: "clean_sheet",
+    title: "Абсолютная точность",
+    description: "Завершите упражнение со 100% точностью",
+    icon: "✨",
+    xpReward: 100,
+    coinReward: 50,
+  },
+  {
+    code: "speed_200",
+    title: "Быстрые пальцы",
+    description: "Преодолейте рубеж в 200 знаков в минуту (CPM)",
+    icon: "⚡",
+    xpReward: 150,
+    coinReward: 75,
+  },
+  {
+    code: "speed_300",
+    title: "Мастер клавиатуры",
+    description: "Преодолейте рубеж в 300 знаков в минуту (CPM)",
+    icon: "🔥",
+    xpReward: 250,
+    coinReward: 120,
+  },
+  {
+    code: "speed_400",
+    title: "Легенда печати",
+    description: "Преодолейте рубеж в 400 знаков в минуту (CPM)",
+    icon: "👑",
+    xpReward: 500,
+    coinReward: 250,
+  },
+  {
+    code: "arena_first_win",
+    title: "Первая кровь",
+    description: "Одержите свою первую победу на Арене",
+    icon: "🏆",
+    xpReward: 150,
+    coinReward: 60,
+  },
+  {
+    code: "arena_5_wins",
+    title: "Гроза соперников",
+    description: "Победите в 5 дуэлях на Арене соревнований",
+    icon: "⚔️",
+    xpReward: 300,
+    coinReward: 150,
+  },
+  {
+    code: "team_win",
+    title: "Командный дух",
+    description: "Победите в командной битве 2 на 2",
+    icon: "🤝",
+    xpReward: 200,
+    coinReward: 100,
+  },
+  {
+    code: "tournament_podium",
+    title: "Призер турнира",
+    description: "Займите призовое место в еженедельном турнире",
+    icon: "🥇",
+    xpReward: 400,
+    coinReward: 200,
+  },
+  {
+    code: "streak_7",
+    title: "Стальная воля",
+    description: "Тренируйтесь 7 дней подряд без единого пропуска",
+    icon: "🔥",
+    xpReward: 350,
+    coinReward: 180,
+  },
+  {
+    code: "chess_etude",
+    title: "Шахматный тактик",
+    description: "Решите клавиатурный этюд без ошибок за рекордное время",
+    icon: "♟️",
+    xpReward: 200,
+    coinReward: 100,
+  },
+  {
+    code: "lessons_10",
+    title: "Прилежный ученик",
+    description: "Успешно завершите 10 пошаговых уроков",
+    icon: "📖",
+    xpReward: 200,
+    coinReward: 100,
+  },
+];
+
+export interface ShopAvatar {
+  avatar: string;
+  name: string;
+  cost: number;
+  description: string;
+}
+
+export const SHOP_AVATARS: ShopAvatar[] = [
+  { avatar: "🦊", name: "Лис-пилот", cost: 0, description: "Базовый аватар клавогонщика" },
+  { avatar: "🦅", name: "Сокол", cost: 0, description: "Стремительный и зоркий" },
+  { avatar: "🥷", name: "Ниндзя", cost: 100, description: "Бесшумные и точные удары" },
+  { avatar: "🏎️", name: "Болид F1", cost: 150, description: "Чистая скорость на треке" },
+  { avatar: "⚡", name: "Молния", cost: 200, description: "Энергия каждого нажатия" },
+  { avatar: "🚀", name: "Ракета", cost: 250, description: "Преодолевая звуковой барьер" },
+  { avatar: "👑", name: "Король", cost: 500, description: "Гроссмейстер клавиатуры" },
+  { avatar: "🐉", name: "Дракон", cost: 750, description: "Легендарный огненный темп" },
+  { avatar: "🦾", name: "Киборг", cost: 1000, description: "Идеальная машинная точность" },
+];
+
+export interface ShopTitle {
+  title: string;
+  cost: number;
+  description: string;
+}
+
+export const SHOP_TITLES: ShopTitle[] = [
+  { title: "Новичок клавиатуры", cost: 0, description: "Первые шаги к мастерству" },
+  { title: "Пальцы-молнии", cost: 150, description: "Стремительный разгон на старте" },
+  { title: "Тактик клавиш", cost: 250, description: "Шахматный расчёт каждого хода" },
+  { title: "Гроза Арены", cost: 400, description: "Непобедимый дуэлянт" },
+  { title: "Гроссмейстер слепой печати", cost: 800, description: "Абсолютный авторитет" },
+];
+
+const USER_STORAGE_KEY = "typing-arena-current-user";
+const listeners = new Set<() => void>();
+
+export function subscribeUser(callback: () => void): () => void {
+  listeners.add(callback);
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", callback);
+  }
+  return () => {
+    listeners.delete(callback);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("storage", callback);
+    }
+  };
+}
+
+function notify() {
+  for (const l of listeners) l();
+}
+
+export function getDefaultUser(): UserProfile {
+  return {
+    id: "user-default",
+    nickname: "Клавогонщик",
+    email: "pilot@typingarena.ai",
+    avatar: "🦊",
+    bio: "Осваиваю слепой десятипальцевый метод печати",
+    authProvider: "guest",
+    createdAt: new Date().toISOString(),
+    level: 1,
+    xp: 120,
+    coins: 80,
+    ratingRu: 1000,
+    ratingEn: 1000,
+    preferredLayout: "ru",
+    goalCpm: 250,
+    goalDays: 30,
+    achievements: ["first_step"],
+    medals: { gold: 0, silver: 0, bronze: 1 },
+    unlockedAvatars: ["🦊", "🦅"],
+    unlockedTitles: ["Новичок клавиатуры"],
+    activeTitle: "Новичок клавиатуры",
+    streakDays: 1,
+    lastActiveDate: new Date().toISOString().slice(0, 10),
+    totalMatches: 0,
+    wins: 0,
+  };
+}
+
+export function getUserServerSnapshot(): string {
+  return JSON.stringify(getDefaultUser());
+}
+
+export function getUserRaw(): string {
+  if (typeof window === "undefined") return getUserServerSnapshot();
+  try {
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) {
+      const def = getDefaultUser();
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(def));
+      return JSON.stringify(def);
+    }
+    return raw;
+  } catch {
+    return getUserServerSnapshot();
+  }
+}
+
+export function getCurrentUser(): UserProfile {
+  try {
+    const parsed = JSON.parse(getUserRaw());
+    const def = getDefaultUser();
+    return {
+      ...def,
+      ...parsed,
+      medals: {
+        ...def.medals,
+        ...(parsed?.medals || {}),
+      },
+      unlockedAvatars: Array.isArray(parsed?.unlockedAvatars)
+        ? parsed.unlockedAvatars
+        : def.unlockedAvatars,
+      unlockedTitles: Array.isArray(parsed?.unlockedTitles)
+        ? parsed.unlockedTitles
+        : def.unlockedTitles,
+      achievements: Array.isArray(parsed?.achievements)
+        ? parsed.achievements
+        : def.achievements,
+    };
+  } catch {
+    return getDefaultUser();
+  }
+}
+
+export function saveUser(user: UserProfile): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    notify();
+  } catch (err) {
+    console.error("Failed to save user profile:", err);
+  }
+}
+
+export function addXpAndCoins(
+  xpAmount: number,
+  coinsAmount: number
+): { newLevel: number; newXp: number; leveledUp: boolean } {
+  const user = getCurrentUser();
+  const nextXp = user.xp + xpAmount;
+  const nextCoins = user.coins + coinsAmount;
+  // 1 level per 200 XP
+  const nextLevel = Math.max(1, Math.floor(nextXp / 200) + 1);
+  const leveledUp = nextLevel > user.level;
+
+  user.xp = nextXp;
+  user.coins = nextCoins;
+  user.level = nextLevel;
+
+  // Check today streak
+  const today = new Date().toISOString().slice(0, 10);
+  if (user.lastActiveDate !== today) {
+    const lastDate = new Date(user.lastActiveDate);
+    const currDate = new Date(today);
+    const diffDays = Math.round(
+      (currDate.getTime() - lastDate.getTime()) / (1000 * 3600 * 24)
+    );
+    if (diffDays === 1) {
+      user.streakDays += 1;
+      if (user.streakDays >= 7) {
+        unlockAchievement("streak_7");
+      }
+    } else if (diffDays > 1) {
+      user.streakDays = 1;
+    }
+    user.lastActiveDate = today;
+  }
+
+  saveUser(user);
+  return { newLevel: nextLevel, newXp: nextXp, leveledUp };
+}
+
+export function awardMedal(type: "gold" | "silver" | "bronze"): void {
+  const user = getCurrentUser();
+  user.medals[type] = (user.medals[type] || 0) + 1;
+  user.coins += type === "gold" ? 100 : type === "silver" ? 50 : 25;
+  saveUser(user);
+}
+
+export function unlockAchievement(code: string): boolean {
+  const user = getCurrentUser();
+  if (user.achievements.includes(code)) return false;
+
+  const ach = ACHIEVEMENTS_LIST.find((a) => a.code === code);
+  user.achievements.push(code);
+  if (ach) {
+    user.xp += ach.xpReward;
+    user.coins += ach.coinReward;
+    user.level = Math.max(1, Math.floor(user.xp / 200) + 1);
+  }
+  saveUser(user);
+  return true;
+}
+
+export function unlockAvatar(avatar: string, cost: number): boolean {
+  const user = getCurrentUser();
+  if (user.unlockedAvatars.includes(avatar)) return true;
+  if (user.coins < cost) return false;
+
+  user.coins -= cost;
+  user.unlockedAvatars.push(avatar);
+  user.avatar = avatar;
+  saveUser(user);
+  return true;
+}
+
+export function unlockTitle(title: string, cost: number): boolean {
+  const user = getCurrentUser();
+  if (user.unlockedTitles.includes(title)) {
+    user.activeTitle = title;
+    saveUser(user);
+    return true;
+  }
+  if (user.coins < cost) return false;
+
+  user.coins -= cost;
+  user.unlockedTitles.push(title);
+  user.activeTitle = title;
+  saveUser(user);
+  return true;
+}
+
+export function updateUserRating(
+  layout: "ru" | "en",
+  delta: number,
+  isWin: boolean,
+  matchType: "1v1" | "2v2" | "tournament" = "1v1"
+): void {
+  const user = getCurrentUser();
+  if (layout === "ru") {
+    user.ratingRu = Math.max(100, user.ratingRu + delta);
+  } else {
+    user.ratingEn = Math.max(100, user.ratingEn + delta);
+  }
+  user.totalMatches += 1;
+  if (isWin) {
+    user.wins += 1;
+    if (user.wins === 1) unlockAchievement("arena_first_win");
+    if (user.wins === 5) unlockAchievement("arena_5_wins");
+    if (matchType === "2v2") unlockAchievement("team_win");
+    if (matchType === "tournament") {
+      awardMedal("gold");
+      unlockAchievement("tournament_podium");
+    } else {
+      awardMedal("silver");
+    }
+  }
+
+  const xpEarned = isWin ? 100 : 40;
+  const coinsEarned = isWin ? 40 : 15;
+  addXpAndCoins(xpEarned, coinsEarned);
+}
+
+export function loginWithGoogle(profile?: {
+  name?: string;
+  email?: string;
+  avatar?: string;
+}): UserProfile {
+  const user = getCurrentUser();
+  user.authProvider = "google";
+  user.nickname = profile?.name || "Google Пользователь";
+  user.email = profile?.email || "user@gmail.com";
+  if (profile?.avatar) {
+    user.avatar = profile.avatar;
+    if (!user.unlockedAvatars.includes(profile.avatar)) {
+      user.unlockedAvatars.push(profile.avatar);
+    }
+  }
+  saveUser(user);
+  return user;
+}
+
+export function loginWithEmail(data: { nickname: string; email: string }): UserProfile {
+  const user = getCurrentUser();
+  user.authProvider = "email";
+  user.nickname = data.nickname;
+  user.email = data.email;
+  saveUser(user);
+  return user;
+}
+
+export function logoutUser(): UserProfile {
+  const def = getDefaultUser();
+  def.authProvider = "guest";
+  saveUser(def);
+  return def;
+}

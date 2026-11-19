@@ -1,0 +1,20 @@
+{
+  "name": "typing-arena-ai",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.34.6",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "dev": "pnpm --filter @typing-arena/web dev",
+    "build": "pnpm --filter @typing-arena/web build",
+    "start": "pnpm --filter @typing-arena/web start",
+    "lint": "pnpm --filter @typing-arena/web lint",
+    "typecheck": "pnpm --filter @typing-arena/web typecheck",
+    "test": "pnpm --filter @typing-arena/web test",
+    "test:e2e": "pnpm --filter @typing-arena/web test:e2e",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@tailwindcss/oxide", "esbuild", "sharp", "unrs-resolver"]
+  }
+}
