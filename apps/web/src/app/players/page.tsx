@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { getUserRaw, getUserServerSnapshot, subscribeUser } from "@/lib/auth/user";
 import "./plaza.css";
+import { PlayerGlobe } from "./player-globe";
 
 const repo = "albertgarbuz/typing-arena-ai";
 const prefix = "[Typing Arena] ";
@@ -49,6 +50,7 @@ export default function PlayersPage(){
   const [kind,setKind]=useState<Kind>(kinds[0]);
   const [note,setNote]=useState("");
   const [name,setName]=useState<string|null>(null);
+  const [view,setView]=useState<"globe"|"list">("globe");
   const [compose,setCompose]=useState(false);
   const [version,refresh]=useState(0);
   const [status,setStatus]=useState("loading");
@@ -79,6 +81,11 @@ export default function PlayersPage(){
   return <><SiteHeader/><main className="plaza layout-container" id="main-content">
     <header className="plaza-head"><div><h1>Клубная площадь</h1><p>Найди напарника для тренировки, предложи заезд или делись прогрессом на пути к цели.</p></div>
     <button className="button button--primary" aria-expanded={compose} onClick={()=>setCompose(!compose)}>{compose?"Закрыть форму":"＋ Разместить карточку"}</button></header>
+    <div className="plaza-view" role="group" aria-label="Вид площади">
+      <button aria-pressed={view==="globe"} onClick={()=>setView("globe")}>3D-планета</button>
+      <button aria-pressed={view==="list"} onClick={()=>setView("list")}>Список</button>
+    </div>
+    {view==="globe" && <PlayerGlobe players={visible} select={id=>document.getElementById("player-"+id)?.focus()} />}
     {compose && <section className="plaza-compose"><h2>Открытая карточка</h2>
       <label>Ник игрока<input maxLength={48} value={name??profile.nickname??""} onChange={e=>setName(e.target.value)}/></label>
       <label>Тема<select value={kind} onChange={e=>setKind(e.target.value as Kind)}>{kinds.map(k=><option key={k}>{k}</option>)}</select></label>
@@ -93,7 +100,7 @@ export default function PlayersPage(){
     {status==="loading" && <p role="status">Загружаем карточки…</p>}
     {status==="ready" && !visible.length && <section className="plaza-empty"><h3>{filter==="Слежу"?"Здесь появятся твои подписки":cards.length?"Карточек по этому запросу пока нет":"Кто выйдет на первый заезд?"}</h3>
       <p>{filter==="Слежу"?"Нажми «Следить за игроком» на его карточке. Здесь появятся его записи, новые ответы и изменения.":cards.length?"Попробуй другой ник или фильтр.":"Площадь открыта. Оставь время, раскладку и дистанцию, чтобы соперник мог ответить."}</p></section>}
-    <div className="plaza-grid">{visible.map(c=><article key={c.id}><small>{c.kind}</small><h3>{c.name}</h3><span>@{c.login}</span><p>{c.note}</p>
+    <div className="plaza-grid">{visible.map(c=><article key={c.id} id={"player-"+c.id} tabIndex={-1}><small>{c.kind}</small><h3>{c.name}</h3><span>@{c.login}</span><p>{c.note}</p>
       {watch["@"+c.login] && (watch["read-"+c.id] || watch["@"+c.login])<c.updated && <strong>Есть обновление</strong>}
       <footer><a href={`https://github.com/${repo}/issues/${c.id}`} target="_blank" rel="noreferrer" onClick={()=>{if(watch["@"+c.login])updateWatch(c,"read")}}>Ответы · {c.replies} ↗</a>
       <button aria-pressed={Boolean(watch["@"+c.login])} onClick={()=>updateWatch(c,"toggle")}>{watch["@"+c.login]?"✓ Слежу":"Следить за игроком"}</button></footer></article>)}</div>
