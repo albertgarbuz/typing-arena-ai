@@ -256,6 +256,7 @@ export default function ArenaLobbyPage() {
 
             <div className="arena-mode-card arena-mode-card--fullwidth">
               <h2 className="arena-mode-card__title">Вызвать друга</h2>
+              <a className="button button--secondary" href="../club/">Друзья и личные сообщения →</a>
               <p className="arena-mode-card__desc">
                 Пройдите тест и поделитесь ссылкой. Друг получит тот же текст и сможет сравнить результат.
               </p>

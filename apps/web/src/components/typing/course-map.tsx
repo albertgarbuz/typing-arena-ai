@@ -7,8 +7,9 @@ import {
   subscribeStorage,
   type ProgressData,
 } from "@/lib/typing/storage";
+import { getUserRaw, getUserServerSnapshot, subscribeUser } from "@/lib/auth/user";
 import { getCourseLevels } from "@/lib/typing/texts";
-import type { Layout } from "@/lib/typing/types";
+import type { Layout, LessonExercise } from "@/lib/typing/types";
 import { IconCheck, IconArrowRight } from "@/components/icons";
 
 interface CourseMapProps {
@@ -32,22 +33,20 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
     }
   }, [progressRaw]);
 
+  const userRaw = useSyncExternalStore(subscribeUser, getUserRaw, getUserServerSnapshot);
+  const credited = useMemo(() => {
+    try {
+      const ids = JSON.parse(userRaw).creditedLessons;
+      return new Set<string>(Array.isArray(ids) ? ids : []);
+    } catch { return new Set<string>(); }
+  }, [userRaw]);
   const levels = getCourseLevels(layout);
-
-  // Check if a level is unlocked
-  const isLevelUnlocked = (levelIndex: number): boolean => {
-    if (levelIndex === 0) return true; // Level 1 is always unlocked
-    const prevLevel = levels[levelIndex - 1];
-    // To unlock, all exercises in previous level must be completed with at least 95% accuracy
-    return prevLevel.exercises.every((ex) => {
-      const p = progress[ex.id];
-      return p && p.accuracy >= ex.minAccuracy;
-    });
-  };
-
+  const isPassed = (ex: LessonExercise) =>
+    credited.has(ex.id) || (progress[ex.id]?.accuracy ?? 0) >= ex.minAccuracy;
+  const isLevelUnlocked = (index: number) =>
+    index === 0 || levels[index-1].exercises.every(isPassed);
   const lessons = levels.flatMap(level => level.exercises.map(exercise => ({level: level.level, exercise})));
-  const passed = ({exercise}: typeof lessons[number]) =>
-    (progress[exercise.id]?.accuracy ?? 0) >= exercise.minAccuracy;
+  const passed = ({exercise}: typeof lessons[number]) => isPassed(exercise);
   const totalLessons = lessons.length;
   const completedTotal = lessons.filter(passed).length;
   const next = lessons.find(item => !passed(item));
@@ -115,10 +114,7 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
       <div className="course-levels-grid">
         {levels.map((lvl, index) => {
           const unlocked = isLevelUnlocked(index);
-          const completedCount = lvl.exercises.filter((ex) => {
-            const p = progress[ex.id];
-            return p && p.accuracy >= ex.minAccuracy;
-          }).length;
+          const completedCount = lvl.exercises.filter(isPassed).length;
           const isLevelComplete = completedCount === lvl.exercises.length;
 
           return (
@@ -154,7 +150,7 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
               <div className="level-card__exercises">
                 {lvl.exercises.map((ex) => {
                   const exProgress = progress[ex.id];
-                  const passed = exProgress && exProgress.accuracy >= ex.minAccuracy;
+                  const passed = isPassed(ex);
 
                   return (
                     <div key={ex.id} className="exercise-row">
@@ -164,7 +160,7 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
                         </span>
                         {passed ? (
                           <span className="exercise-row__stat">
-                            ✓ {exProgress.accuracy}% · {exProgress.cpm} CPM
+                            {exProgress && exProgress.accuracy >= ex.minAccuracy ? `✓ ${exProgress.accuracy}% · ${exProgress.cpm} CPM` : "✓ Перенесён из прежнего профиля"}
                           </span>
                         ) : null}
                       </div>

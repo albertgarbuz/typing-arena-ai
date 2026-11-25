@@ -6,7 +6,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import {
-  ACHIEVEMENTS_LIST,
+  ACHIEVEMENTS_LIST, ACHIEVEMENT_GROUPS, MILESTONES, milestoneValue,
   getDefaultUser,
   getChessRank,
   getLeague,
@@ -51,6 +51,14 @@ export default function ProfilePage() {
   }, [userRaw]);
 
   const [cardLink,setCardLink] = useState("");
+  const portrait = useSyncExternalStore(subscribeStorage, () => {
+    try {
+      const key = [user.authProvider || "guest",user.email || user.id || "guest",user.createdAt || ""].join("/");
+      const album = JSON.parse(localStorage.getItem("typing-arena-club-v1/"+key) || "{}").media;
+      const photo = Array.isArray(album) && album.find(item=>item?.kind==="photo")?.url;
+      return typeof photo === "string" && /^data:image\/jpeg;base64,/.test(photo) ? photo : "";
+    } catch { return ""; }
+  }, () => "");
   const goal = dailyGoal();
   const toy = TOYS.find(item => item.id === user.activeToy);
   const [play, setPlay] = useState(0);
@@ -70,6 +78,7 @@ export default function ProfilePage() {
   const [authSuccessNotice, setAuthSuccessNotice] = useState("");
 
   // Active profile subtab
+  const [achievementGroup,setAchievementGroup] = useState("Основные");
   const [profileTab, setProfileTab] = useState<"achievements" | "shop" | "chess">("achievements");
 
   // Exercise Progress
@@ -86,7 +95,7 @@ export default function ProfilePage() {
     }
   }, [progressRaw]);
 
-  const completedLessonsCount = Object.keys(progress).length;
+  const completedLessonsCount = new Set([...Object.keys(progress), ...(user.creditedLessons || [])]).size;
 
   // Check today's lesson completion
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -180,6 +189,10 @@ export default function ProfilePage() {
             </div>
           ) : null}
 
+          <section className="daily-quest social-entry">
+            <div><h2>Друзья на арене</h2><p>Добавь своё фото, пригласи друга и договорись о следующем заезде.</p></div>
+            <a className="button button--primary" href="../club/">Открыть клуб →</a>
+          </section>
           <section className="daily-quest">
             <div><span className="eyebrow">Задание дня · 30 монет</span>
               <h2>{user.dailyAwardDate === goal.day ? "Сегодняшняя награда получена" : "Точный заезд"}</h2>
@@ -224,7 +237,7 @@ export default function ProfilePage() {
           <div className="profile-hero-card">
             <div className="profile-hero-card__left">
               <div className="profile-avatar-wrapper">
-                <span className="profile-avatar">{user.avatar}</span>
+                <span className="profile-avatar">{portrait ? <img className="club-portrait" src={portrait} alt={"Фото игрока "+user.nickname} /> : user.avatar}</span>
                 <span className="profile-chess-badge" style={{ background: chessRank.color }}>
                   {chessRank.code}
                 </span>
@@ -551,8 +564,12 @@ export default function ProfilePage() {
 
             {/* Tab 1: Achievements */}
             {profileTab === "achievements" ? (
-              <div className="achievements-grid">
-                {ACHIEVEMENTS_LIST.map((ach) => {
+              <><div className="achievement-filters" role="group" aria-label="Категории достижений">
+                {ACHIEVEMENT_GROUPS.map(group => <button key={group} type="button" aria-pressed={group===achievementGroup}
+                  onClick={()=>setAchievementGroup(group)}>{group}</button>)}
+              </div><div className="achievements-grid">
+                {ACHIEVEMENTS_LIST.filter(ach => (MILESTONES.find(m=>m.code===ach.code)?.group || "Основные") === achievementGroup).map((ach) => {
+                  const milestone = MILESTONES.find(m=>m.code===ach.code);
                   const isUnlocked = user.achievements.includes(ach.code);
                   return (
                     <div
@@ -576,13 +593,13 @@ export default function ProfilePage() {
                             <IconCheck size={12} /> Разблокировано
                           </span>
                         ) : (
-                          <span className="achievement-status-locked">{ach.code === "streak_7" ? `${Math.min(user.streakDays, 7)} из 7 дней` : ach.code === "lessons_10" ? `${Math.min(completedLessonsCount, 10)} из 10 упражнений` : "Ещё не открыто"}</span>
+                          <span className="achievement-status-locked">{milestone ? `${Math.min(milestone.goal,milestoneValue(user,milestone.metric))} из ${milestone.goal}` : ach.code === "streak_7" ? `${Math.min(user.streakDays, 7)} из 7 дней` : ach.code === "lessons_10" ? `${Math.min(completedLessonsCount, 10)} из 10 упражнений` : "Ещё не открыто"}</span>
                         )}
                       </div>
                     </div>
                   );
                 })}
-              </div>
+              </div></>
             ) : null}
 
             {/* Tab 2: Shop */}

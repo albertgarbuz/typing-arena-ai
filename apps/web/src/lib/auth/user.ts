@@ -26,6 +26,7 @@ export interface UserProfile {
   unlockedTitles: string[];
   activeTitle: string;
   campaign?: { days: number; date: string; today: number; characters: number; best: number };
+  creditedLessons?: string[];
   toys?: string[];
   activeToy?: string;
   dailyAwardDate?: string;
@@ -124,6 +125,30 @@ export interface Achievement {
   coinReward: number;
 }
 
+const milestoneTracks = [
+  {key:"speed", label:"Скорость", title:"Темп", unit:"зн/мин при точности от 90%", icon:"⚡", goals:[50,65,80,95,110,125,140,155,170,185,215,235,255,275,325,350,375,450]},
+  {key:"volume", label:"Практика", title:"Дистанция", unit:"зачётных знаков", icon:"⌨️", goals:[100,250,500,1000,2000,3500,5000,7500,10000,15000,20000,30000,45000,60000,80000,100000,150000,200000]},
+  {key:"days", label:"Регулярность", title:"Ритм", unit:"зачётных дней", icon:"📅", goals:[1,2,3,4,5,7,10,14,18,21,25,30,40,50,60,75,90,120]},
+  {key:"races", label:"Заезды", title:"Дистанция арены", unit:"рейтинговых матчей", icon:"🏁", goals:[1,3,5,8,12,18,25,35,50,70,90,120,160,200,250,300,400,500]},
+  {key:"wins", label:"Победы", title:"Победы на арене", unit:"побед всего", icon:"🏆", goals:[2,3,4,7,10,15,20,25,35,45,60,80,100,125,150,175,200,250]},
+  {key:"medals", label:"Медали", title:"Коллекционер", unit:"золотых медалей", icon:"🥇", goals:[1,2,3,5,7,10,15,20,25,30,40,50,65,80,100,125,150,200]},
+] as const;
+export const MILESTONES = milestoneTracks.flatMap(track => track.goals.map((goal,i)=>({
+  code:`milestone_${track.key}_${goal}`, title:`${track.title} · ${goal.toLocaleString("ru-RU")}`,
+  description:`Набери ${goal.toLocaleString("ru-RU")} · ${track.unit}`, icon:track.icon,
+  xpReward:10 + i*5, coinReward:3 + i*2, group:track.label, metric:track.key, goal
+})));
+export const ACHIEVEMENT_GROUPS = ["Основные",...milestoneTracks.map(track=>track.label)];
+export function milestoneValue(user: UserProfile, metric: typeof milestoneTracks[number]["key"]){
+  switch(metric){
+    case "speed": return user.campaign?.best || 0;
+    case "volume": return user.campaign?.characters || 0;
+    case "days": return user.campaign?.days || 0;
+    case "races": return user.totalMatches;
+    case "wins": return user.wins;
+    case "medals": return user.medals.gold;
+  }
+}
 export const ACHIEVEMENTS_LIST: Achievement[] = [
   {
     code: "first_step",
@@ -221,6 +246,7 @@ export const ACHIEVEMENTS_LIST: Achievement[] = [
     xpReward: 200,
     coinReward: 100,
   },
+  ...MILESTONES,
 ];
 
 export interface ShopAvatar {
@@ -426,6 +452,14 @@ export function getCurrentUser(): UserProfile {
 export function saveUser(user: UserProfile): void {
   if (typeof window === "undefined") return;
   try {
+    for (const milestone of MILESTONES) {
+      if (milestoneValue(user,milestone.metric) >= milestone.goal && !user.achievements.includes(milestone.code)) {
+        user.achievements.push(milestone.code);
+        user.xp += milestone.xpReward;
+        user.coins += milestone.coinReward;
+        user.level = Math.max(user.level, Math.floor(user.xp/200)+1);
+      }
+    }
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
     notify();
   } catch (err) {
