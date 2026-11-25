@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  ...(process.env.PAGES_BUILD ? { output: "export" as const, basePath: "/typing-arena-ai", trailingSlash: true } : {}),
   poweredByHeader: false,
   reactStrictMode: true,
   async headers() {
