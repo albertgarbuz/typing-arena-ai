@@ -15,6 +15,7 @@ import "@fontsource/jetbrains-mono/cyrillic-400.css";
 import "@fontsource/jetbrains-mono/cyrillic-500.css";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
+import "./navigation.css";
 
 export const metadata: Metadata = {
   title: { default: "Typing Arena AI — точность, ритм, свобода", template: "%s · Typing Arena AI" },

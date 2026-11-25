@@ -9,7 +9,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import {
   getCurrentUser,
   getDefaultUser,
-  getLeague,
   getUserRaw,
   getUserServerSnapshot,
   subscribeUser,
@@ -19,14 +18,12 @@ import {
 export interface NavRoute {
   href: string;
   label: string;
-  badge?: string;
-  icon?: string;
 }
 
 export const MAIN_NAV_ROUTES: NavRoute[] = [
-  { href: "/learn", label: "Обучение", badge: "100" },
+  { href: "/learn", label: "Обучение" },
   { href: "/test", label: "Тест скорости" },
-  { href: "/arena", label: "Арена", icon: "⚔️", badge: "LIVE" },
+  { href: "/arena", label: "Арена" },
   { href: "/stats", label: "Статистика" },
   { href: "/methodology", label: "Методика" },
 ];
@@ -50,7 +47,8 @@ export function SiteHeader() {
     }
   }, [userRaw]);
 
-  const league = getLeague(user.ratingRu);
+  const currentPath = (pathname || "/").replace(/\/$/, "");
+  const active = (href: string) => currentPath === href || currentPath.startsWith(href + "/");
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -88,36 +86,24 @@ export function SiteHeader() {
             TA
           </span>
           <span className="brand__name">Typing Arena</span>
-          <span className="brand__pill">AI</span>
+
         </Link>
 
         {/* Clean, Non-Duplicated Main Navigation */}
         <nav className="site-nav" aria-label="Основная навигация">
           <ul className="site-nav__list">
             {MAIN_NAV_ROUTES.map((route) => {
-              const isActive =
-                pathname === route.href ||
-                (route.href === "/learn" && pathname?.startsWith("/learn"));
-
+              const isActive = active(route.href);
               return (
                 <li key={route.href} className="site-nav__item">
                   <Link
+                    aria-current={isActive ? "page" : undefined}
                     href={route.href}
                     className={`site-nav__link ${isActive ? "site-nav__link--active" : ""} ${
                       route.href === "/arena" ? "site-nav__link--arena" : ""
                     }`}
                   >
-                    {route.icon ? <span className="site-nav__icon">{route.icon}</span> : null}
-                    <span>{route.label}</span>
-                    {route.badge ? (
-                      <span
-                        className={`nav-badge ${
-                          route.badge === "LIVE" ? "nav-badge--live" : "nav-badge--count"
-                        }`}
-                      >
-                        {route.badge}
-                      </span>
-                    ) : null}
+                    {route.label}
                   </Link>
                 </li>
               );
@@ -131,18 +117,16 @@ export function SiteHeader() {
           <Link
             href="/profile"
             className="header-user-chip"
-            title="Перейти в Личный кабинет"
+            title={user.nickname + " · Личный кабинет"}
+            aria-label={"Личный кабинет: " + user.nickname}
           >
             <span className="user-avatar-chip">{user.avatar || "🦊"}</span>
             <div className="user-meta-chip">
               <span className="user-name-chip">{user.nickname || "Клавогонщик"}</span>
-              <span className="user-rank-chip" style={{ color: league.color }}>
-                {user.ratingRu} Elo · Ур. {user.level}
+              <span className="user-rank-chip">
+                Уровень {user.level}
               </span>
             </div>
-            <span className="user-coins-chip" title="Баллы мастерства">
-              🪙 {user.coins || 0}
-            </span>
           </Link>
 
           <ThemeToggle />
@@ -165,52 +149,15 @@ export function SiteHeader() {
       {menuOpen ? (
         <nav id="mobile-navigation" className="mobile-nav" aria-label="Мобильная навигация">
           <ul className="mobile-nav__list layout-container">
-            <li className="mobile-nav__item">
-              <Link className="mobile-nav__link" href="/profile" onClick={closeMenu}>
-                <span className="mobile-nav__label">
-                  👤 Личный кабинет ({user.nickname} · {user.ratingRu} Elo)
-                </span>
-                <IconArrowRight className="mobile-nav__icon" size={18} />
-              </Link>
-            </li>
-            <li className="mobile-nav__item">
-              <Link className="mobile-nav__link" href="/arena" onClick={closeMenu}>
-                <span className="mobile-nav__label">⚔️ Арена соревнований (LIVE)</span>
-                <IconArrowRight className="mobile-nav__icon" size={18} />
-              </Link>
-            </li>
-            <li className="mobile-nav__item">
-              <Link className="mobile-nav__link" href="/learn" onClick={closeMenu}>
-                <span className="mobile-nav__label">📚 Курс обучения (100 уроков)</span>
-                <IconArrowRight className="mobile-nav__icon" size={18} />
-              </Link>
-            </li>
-            <li className="mobile-nav__item">
-              <Link className="mobile-nav__link" href="/test" onClick={closeMenu}>
-                <span className="mobile-nav__label">⚡ Тест скорости печати</span>
-                <IconArrowRight className="mobile-nav__icon" size={18} />
-              </Link>
-            </li>
-            <li className="mobile-nav__item">
-              <Link className="mobile-nav__link" href="/stats" onClick={closeMenu}>
-                <span className="mobile-nav__label">📊 Статистика и аналитика</span>
-                <IconArrowRight className="mobile-nav__icon" size={18} />
-              </Link>
-            </li>
-            <li className="mobile-nav__item">
-              <Link className="mobile-nav__link" href="/methodology" onClick={closeMenu}>
-                <span className="mobile-nav__label">📐 Методика и метрики</span>
-                <IconArrowRight className="mobile-nav__icon" size={18} />
-              </Link>
-            </li>
-            <li className="mobile-nav__item">
-              <Link className="mobile-nav__link" href="/legal" onClick={closeMenu}>
-                <span className="mobile-nav__label">📜 Оферта и защита данных (152-ФЗ)</span>
-                <IconArrowRight className="mobile-nav__icon" size={18} />
-              </Link>
-            </li>
+            {[...MAIN_NAV_ROUTES, {href: "/profile", label: "Личный кабинет"}].map(route => (
+              <li className="mobile-nav__item" key={route.href}>
+                <Link href={route.href} onClick={closeMenu} aria-current={active(route.href) ? "page" : undefined} className="mobile-nav__link">
+                  {route.label}<IconArrowRight size={16} />
+                </Link>
+              </li>
+            ))}
           </ul>
-          <p className="mobile-nav__note layout-container">Typing Arena AI · спортивный тренажёр печати</p>
+
         </nav>
       ) : null}
     </header>

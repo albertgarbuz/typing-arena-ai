@@ -666,18 +666,6 @@ export default function ProfilePage() {
             ) : null}
           </div>
 
-          {/* Legal agreement disclaimer link */}
-          <div className="profile-legal-box">
-            <span className="legal-icon">📜</span>
-            <p className="legal-text">
-              Все данные профиля хранятся в соответствии с требованиями 152-ФЗ РФ.
-              Ознакомьтесь с{" "}
-              <Link href="/legal" className="legal-link">
-                Договором публичной оферты и Политикой обработки персональных данных
-              </Link>
-              .
-            </p>
-          </div>
         </div>
       </main>
 
