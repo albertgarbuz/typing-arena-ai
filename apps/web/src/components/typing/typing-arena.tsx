@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useId, useRef, useState } from "react";
 import { calculateTypingMetrics } from "@/lib/typing/engine";
 import { flyLetter } from "@/lib/typing/letter-flight";
 import { saveResult } from "@/lib/typing/storage";
@@ -57,16 +57,18 @@ export function TypingArena({
   const startTimeRef = useRef<number | null>(null);
 
   const inputId = useId();
+  const previousPassages = useRef({target:"",buffer:""});
 
   // Reset session
   const resetSession = useCallback(
-    (newText?: string) => {
+    (newText?: string, resetDuration = duration) => {
       if (timerRef.current) clearInterval(timerRef.current);
       setInputBuffer("");
       setIsStarted(false);
       setIsFinished(false);
       setResult(null);
-      setTimeLeft(duration);
+      setTimeLeft(resetDuration);
+      previousPassages.current = {target:"",buffer:""};
       setLiveCpm(0);
       totalAttemptsRef.current = 0;
       hitsRef.current = 0;
@@ -90,13 +92,13 @@ export function TypingArena({
   );
 
   // Finish session calculation
-  const finishSession = useCallback(() => {
+  const finishSession = useCallback((finalBuffer = inputBuffer) => {
     if (timerRef.current) clearInterval(timerRef.current);
     setIsFinished(true);
 
     const elapsedSeconds =
       mode === "test"
-        ? duration - timeLeft
+        ? duration
         : startTimeRef.current
         ? Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000))
         : 1;
@@ -104,8 +106,8 @@ export function TypingArena({
     const actualDuration = elapsedSeconds > 0 ? elapsedSeconds : duration;
 
     const metrics = calculateTypingMetrics({
-      targetText,
-      finalBuffer: inputBuffer,
+      targetText: previousPassages.current.target + targetText,
+      finalBuffer: previousPassages.current.buffer + finalBuffer,
       totalAttempts: totalAttemptsRef.current,
       hits: hitsRef.current,
       backspaces: backspacesRef.current,
@@ -152,30 +154,18 @@ export function TypingArena({
     timeLeft,
   ]);
 
-  // Timer tick effect for test mode
+  const tick = useEffectEvent(() => {
+    if (startTimeRef.current === null) return;
+    const elapsed = Math.floor((Date.now()-startTimeRef.current)/1000);
+    setTimeLeft(Math.max(0,duration-elapsed));
+    if (elapsed >= duration) finishSession();
+    else if (elapsed > 0) setLiveCpm(Math.round(hitsRef.current*60/elapsed));
+  });
   useEffect(() => {
     if (!isStarted || isFinished || mode !== "test") return;
-
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          finishSession();
-          return 0;
-        }
-        const nextTime = prev - 1;
-        const elapsed = duration - nextTime;
-        if (elapsed > 0) {
-          setLiveCpm(Math.round((hitsRef.current * 60) / elapsed));
-        }
-        return nextTime;
-      });
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isStarted, isFinished, mode, finishSession, duration]);
+    timerRef.current = setInterval(tick,200);
+    return () => { if(timerRef.current) clearInterval(timerRef.current); };
+  }, [isStarted,isFinished,mode]);
 
   // Handle typing input
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -253,7 +243,12 @@ export function TypingArena({
 
     // If reached end of target text
     if (nextBuffer.length >= targetText.length) {
-      finishSession();
+      if (mode === "test" && onTextRequest) {
+        previousPassages.current.target += targetText;
+        previousPassages.current.buffer += nextBuffer;
+        setTargetText(onTextRequest(layout));
+        setInputBuffer("");
+      } else finishSession(nextBuffer);
     }
   };
 
@@ -278,8 +273,7 @@ export function TypingArena({
                 disabled={isStarted && !isFinished}
                 onClick={() => {
                   setDuration(d);
-                  setTimeLeft(d);
-                  resetSession();
+                  resetSession(undefined,d);
                 }}
                 className={`time-pill ${duration === d ? "time-pill--active" : ""}`}
               >
@@ -308,9 +302,11 @@ export function TypingArena({
             </div>
           ) : null}
 
+          {mode === "test" && onTextRequest && <button type="button" className="time-pill"
+            onClick={() => resetSession()} title="Начать новую попытку с другим текстом">Другой текст</button>}
           <button
             type="button"
-            onClick={() => resetSession()}
+            onClick={() => resetSession(mode === "test" ? targetText : undefined)}
             className="action-icon-button"
             title="Перезапустить (Esc)"
             aria-label="Перезапустить"

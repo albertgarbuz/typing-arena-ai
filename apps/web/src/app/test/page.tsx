@@ -1,20 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TypingArena } from "@/components/typing/typing-arena";
-import { getRandomTestText } from "@/lib/typing/texts";
+import { drawSpeedText } from "@/lib/typing/speed-deck";
 import type { Layout } from "@/lib/typing/types";
 
 export default function SpeedTestPage() {
   const [layout, setLayout] = useState<Layout>("ru");
-  const [currentText, setCurrentText] = useState(() => getRandomTestText("ru"));
+  const [currentText, setCurrentText] = useState("");
+  const opened = useRef(false);
+  useEffect(() => {
+    if (!opened.current) { opened.current = true; setCurrentText(drawSpeedText("ru")); }
+  }, []);
 
   const handleLayoutChange = (newLayout: Layout) => {
+    if (newLayout === layout) return;
     setLayout(newLayout);
-    setCurrentText(getRandomTestText(newLayout));
+    setCurrentText(drawSpeedText(newLayout));
   };
 
   return (
@@ -56,14 +61,14 @@ export default function SpeedTestPage() {
             </div>
           </div>
 
-          <TypingArena
-            key={`${layout}-${currentText.slice(0, 10)}`}
+          {currentText && <TypingArena
+            key={layout}
             initialText={currentText}
             layout={layout}
             mode="test"
             initialDuration={60}
-            onTextRequest={() => getRandomTestText(layout)}
-          />
+            onTextRequest={drawSpeedText}
+          />}
 
           <div className="test-page-links">
             <Link href="/learn" className="text-link">
