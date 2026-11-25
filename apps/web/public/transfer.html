@@ -1,0 +1,27 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Перенос прогресса · Typing Arena</title>
+<style>body{background:#090f18;color:#eff6ff;font:17px/1.65 system-ui;margin:8vh auto;padding:0 22px;max-width:650px}a,button{color:#5de4c8}button,a.key{display:inline-block;background:#122632;border:1px solid #476274;border-radius:9px;padding:9px 16px;font:inherit}button{cursor:pointer}h2{margin-top:32px}</style>
+<h1>Перенос прогресса</h1><h2>1. Сохранить старый профиль</h2><p>На компьютере перетащи кнопку в панель закладок. Открой старую арену в том браузере, где виден твой профиль, и нажми сохранённую закладку. Она скачает файл с игровыми данными на компьютер.</p>
+<a class="key" id="export">Сохранить прогресс арены</a>
+<h2>2. Перенести на этот сайт</h2><p>Выбери скачанный файл и проверь ник. Перед заменой сайт скачает резервную копию текущего прогресса.</p><input type="file" accept=".json" id="file"><p role="status" id="status"></p><button id="apply" disabled>Сохранить копию и перенести</button><p><a href="./profile/">Открыть профиль</a></p>
+<script>
+const keys=['typing-arena-current-user','typing-arena-matches','typing-arena-results','typing-arena-progress','typing-arena-best-ru','typing-arena-best-en'];
+function download(keys){
+ const data=Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]));
+ if(!data[keys[0]])return;
+ const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,data})],{type:'application/json'}));
+ const a=document.createElement('a');a.href=url;a.download='typing-arena-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+document.querySelector('#export').href='javascript:(()=>{if(location.origin!=="https://typing-arena-ai.albert-garbuz89.chatgpt.site"){alert("Открой старую арену");return;}('+download.toString()+')('+JSON.stringify(keys)+')})()';
+let pending;const apply=document.querySelector('#apply'),statusBox=document.querySelector('#status');
+document.querySelector('#file').onchange=async e=>{
+ apply.disabled=true;pending=null;
+ try {
+ const file=e.target.files[0];if(!file||file.size>3000000)throw Error();
+ const {version,data}=JSON.parse(await file.text());if(version!==1||!data||!keys.every(k=>data[k]===null||typeof data[k]==='string'))throw Error();
+ const [u,matches,results,lessons]=keys.map(k=>JSON.parse(data[k]));
+ if(typeof u?.nickname!=='string'||!Number.isFinite(u.level)||!Number.isFinite(u.coins)||!Array.isArray(u.achievements)||!Array.isArray(u.unlockedTitles)||!u.medals||[matches,results].some(v=>v!==null&&!Array.isArray(v))||(lessons&&!lessons.completedExercises))throw Error();
+ pending=data;statusBox.textContent=u.nickname+' · Уровень '+u.level+' · Монеты '+u.coins;apply.disabled=false;
+ }catch{statusBox.textContent='Не удалось прочитать резервную копию арены.'}
+};
+apply.onclick=()=>{if(!pending)return;const before=keys.map(k=>localStorage.getItem(k));download(keys);try{keys.forEach(k=>pending[k]===null?localStorage.removeItem(k):localStorage.setItem(k,pending[k]));apply.disabled=true;statusBox.textContent='Перенос завершён. Открой профиль.'}catch{keys.forEach((k,i)=>before[i]===null?localStorage.removeItem(k):localStorage.setItem(k,before[i]));statusBox.textContent='Перенос не завершён.'}};
+</script></html>

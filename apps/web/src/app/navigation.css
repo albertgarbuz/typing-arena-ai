@@ -27,3 +27,11 @@
  @keyframes section-arrives{from{opacity:.65;translate:0 5px}to{opacity:1;translate:0 0}}
  @keyframes underline-arrives{from{transform:scaleX(.25)}to{transform:scaleX(1)}}
 }
+.profile-performance {display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:clamp(20px,4vw,46px);border:1px solid var(--border);border-radius:20px;background:linear-gradient(115deg,var(--soft-mint),var(--surface));margin-bottom:20px}
+.profile-performance h2,.record-reveal strong{font:700 clamp(36px,6vw,68px)/1.2 var(--font-mono),monospace;color:var(--mint)}
+.profile-performance small{font:500 14px/1.5 var(--font-sans),sans-serif;color:var(--muted)}
+.profile-performance progress{display:block;width:100%;height:8px;accent-color:var(--mint);margin:12px 0 20px}
+.record-reveal{position:relative;overflow:hidden;padding:16px;border-block:1px solid var(--border)}
+.record-reveal span{position:absolute;inset-inline-start:18px;opacity:0;color:var(--mint)}
+@media(prefers-reduced-motion:no-preference){.record-reveal span{animation:record-letters .5s both}.record-reveal strong{display:inline-block;animation:arena-reveal .35s .36s both}@keyframes record-letters{0%{opacity:0;letter-spacing:1em}35%{opacity:.8}100%{opacity:0;letter-spacing:0}}}
+@media(max-width:650px){.profile-performance{grid-template-columns:1fr}}

@@ -486,12 +486,29 @@ export function updateUserRating(
   addXpAndCoins(xpEarned, coinsEarned);
 }
 
+const progressKeys = ["typing-arena-matches", "typing-arena-results", "typing-arena-progress", "typing-arena-best-ru", "typing-arena-best-en"];
+function archiveKey(email: string, provider: string) {
+  return "typing-arena-local-profile:" + provider + ":" + email.trim().toLowerCase();
+}
+
+function restoreLocalProfile(email: string, provider: string): UserProfile {
+  const raw = localStorage.getItem(archiveKey(email, provider));
+  if (!raw) return getCurrentUser();
+  const saved = JSON.parse(raw);
+  for (const key of progressKeys) {
+    if (typeof saved.progress[key] === "string") localStorage.setItem(key, saved.progress[key]);
+    else localStorage.removeItem(key);
+  }
+  window.dispatchEvent(new Event("storage"));
+  return saved.profile;
+}
+
 export function loginWithGoogle(profile?: {
   name?: string;
   email?: string;
   avatar?: string;
 }): UserProfile {
-  const user = getCurrentUser();
+  const user = restoreLocalProfile(profile?.email || "user@gmail.com", "google");
   user.authProvider = "google";
   user.nickname = profile?.name || "Google Пользователь";
   user.email = profile?.email || "user@gmail.com";
@@ -506,7 +523,7 @@ export function loginWithGoogle(profile?: {
 }
 
 export function loginWithEmail(data: { nickname: string; email: string }): UserProfile {
-  const user = getCurrentUser();
+  const user = restoreLocalProfile(data.email, "email");
   user.authProvider = "email";
   user.nickname = data.nickname;
   user.email = data.email;
@@ -515,6 +532,11 @@ export function loginWithEmail(data: { nickname: string; email: string }): UserP
 }
 
 export function logoutUser(): UserProfile {
+  const profile = getCurrentUser();
+  const progress = Object.fromEntries(progressKeys.map(key => [key, localStorage.getItem(key)]));
+  localStorage.setItem(archiveKey(profile.email, profile.authProvider), JSON.stringify({ profile, progress }));
+  for (const key of progressKeys) localStorage.removeItem(key);
+  window.dispatchEvent(new Event("storage"));
   const def = getDefaultUser();
   def.authProvider = "guest";
   saveUser(def);

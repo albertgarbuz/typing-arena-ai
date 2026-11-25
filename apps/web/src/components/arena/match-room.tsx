@@ -8,6 +8,7 @@ import {
   create2v2MatchRoster,
   createRivalBot,
   getRandomArenaText,
+  getArenaBest,
   saveMatchResult,
 } from "@/lib/arena/engine";
 import type { MatchMode, Racer, TimeControl } from "@/lib/arena/types";
@@ -45,6 +46,7 @@ export function MatchRoom({
 
   const [currentUser, setCurrentUser] = useState(getCurrentUser);
   const settled = useRef(false);
+  const [recordGain, setRecordGain] = useState(0);
   const [promotion, setPromotion] = useState("");
   const playerRating = layout === "ru" ? currentUser.ratingRu : currentUser.ratingEn;
 
@@ -169,6 +171,8 @@ export function MatchRoom({
       const rank = getChessRank(newRating);
       setPromotion(rank.minElo > getChessRank(playerRating).minElo ? rank.title : "");
       setDeltaElo(newRating - playerRating);
+      const best = getArenaBest(layout);
+      setRecordGain(best > 0 ? Math.max(0, finalCpm - best) : 0);
       saveMatchResult({
         id: `match-${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -456,6 +460,7 @@ export function MatchRoom({
                   : "ПОБЕДА В ЗАЕЗДЕ!"
                 : "ПОРАЖЕНИЕ В ЗАЕЗДЕ"}
             </h2>
+            {recordGain > 0 && <div className="record-reveal" role="status"><span aria-hidden="true">{raceText.slice(-5)}</span><strong>+{recordGain}</strong> знаков/мин к личному рекорду</div>}
             <p className="result-modal-desc">
               {winner === "player" || winner === "blue"
                 ? mode === "tournament"

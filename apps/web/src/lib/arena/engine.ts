@@ -128,6 +128,8 @@ export function saveMatchResult(match: MatchHistoryItem): void {
   try {
     const raw = localStorage.getItem(MATCH_HISTORY_KEY);
     const list: MatchHistoryItem[] = raw ? JSON.parse(raw) : [];
+    const best = getArenaBest(match.layout);
+    localStorage.setItem("typing-arena-best-" + match.layout, String(Math.max(best, match.myCpm)));
     list.unshift(match);
     if (list.length > 50) list.length = 50;
     localStorage.setItem(MATCH_HISTORY_KEY, JSON.stringify(list));
@@ -144,4 +146,10 @@ export function getMatchHistory(): MatchHistoryItem[] {
   } catch {
     return [];
   }
+}
+
+export function getArenaBest(layout: "ru" | "en"): number {
+  if (typeof window === "undefined") return 0;
+  return Math.max(Number(localStorage.getItem("typing-arena-best-" + layout)) || 0,
+    ...getMatchHistory().filter(match => match.layout === layout).map(match => match.myCpm));
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
+import { getArenaBest, getMatchHistory } from "@/lib/arena/engine";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -92,6 +93,12 @@ export default function ProfilePage() {
   const leagueRu = getLeague(user.ratingRu);
   const chessRank = getChessRank(user.ratingRu);
 
+  const best = useSyncExternalStore(subscribeUser, () => getArenaBest("ru"), () => 0);
+  const lastDelta = useSyncExternalStore(subscribeUser, () => {
+    const [last, previous] = getMatchHistory().filter(r => r.layout === "ru");
+    return previous ? last.myCpm - previous.myCpm : null;
+  }, () => null);
+  const nextRank = [1000,1200,1400,1700,2000].find(value => value > user.ratingRu);
   const xpInCurrentLevel = user.xp % 200;
   const xpNeeded = 200;
   const xpPercent = Math.min(100, Math.round((xpInCurrentLevel / xpNeeded) * 100));
@@ -169,6 +176,15 @@ export default function ProfilePage() {
             </div>
           ) : null}
 
+          <section className="profile-performance">
+            <div><small>Личный рекорд · Русская арена</small><h2>{best || "—"} <small>знаков/мин</small></h2>
+              {lastDelta !== null && <p>Последний заезд: {lastDelta > 0 ? "+" : ""}{lastDelta} знаков/мин к предыдущему</p>}
+            </div>
+            <div>{nextRank ? <><p>До ранга «{getChessRank(nextRank).title}» — {nextRank - user.ratingRu} очков</p>
+              <progress aria-label="Прогресс до следующего ранга" value={user.ratingRu-chessRank.minElo} max={nextRank-chessRank.minElo} /></> : <p>Высшая лига · {chessRank.title}</p>}
+              <Link href="/arena" className="button button--primary">Продолжить на арене</Link>
+            </div>
+          </section>
           {/* User Hero Header */}
           <div className="profile-hero-card">
             <div className="profile-hero-card__left">
@@ -524,7 +540,7 @@ export default function ProfilePage() {
                             <IconCheck size={12} /> Разблокировано
                           </span>
                         ) : (
-                          <span className="achievement-status-locked">🔒 Не получено</span>
+                          <span className="achievement-status-locked">{ach.code === "streak_7" ? `${Math.min(user.streakDays, 7)} из 7 дней` : ach.code === "lessons_10" ? `${Math.min(completedLessonsCount, 10)} из 10 упражнений` : "Ещё не открыто"}</span>
                         )}
                       </div>
                     </div>
