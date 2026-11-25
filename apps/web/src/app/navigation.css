@@ -79,14 +79,6 @@
  @keyframes toy-dash{50%{transform:translate(25px,-15px) scale(.7)}}
 }
 
-.studio-shot {position:relative;overflow:hidden;isolation:isolate;border-radius:13px;margin-bottom:16px;background:#292831}
-.studio-shot img {display:block;width:100%;height:auto}
-.studio-shot .studio-hand {position:absolute;inset:0;transition:transform .13s ease-out}
-.studio-left {mask-image:radial-gradient(ellipse at 25% 70%,black 16%,transparent 42%)}
-.studio-right {mask-image:radial-gradient(ellipse at 77% 72%,black 17%,transparent 42%)}
-@media(prefers-reduced-motion:no-preference){
- .studio-shot[data-strike=left] .studio-left,.studio-shot[data-strike=right] .studio-right {transform:translateY(3px) scale(.995)}
-}
 .hero__actions .button,.campaign-board .button,.daily-quest .button,.shop-section .button {border-radius:13px;box-shadow:inset 0 1px 0 #ffffff24,0 3px 8px #0002}
 .hero__actions .button--primary,.daily-quest .button--primary {color:white;background:linear-gradient(180deg,#2776ea,#1757c3)}
 .campaign-board {padding:clamp(18px,3vw,36px);border:1px solid var(--border);border-radius:20px;background:var(--surface);margin-block:1rem}
@@ -100,3 +92,19 @@
 .card-copy {display:grid;gap:.5rem;margin-top:1rem}
 .card-copy input {width:100%;padding:.6rem}
 .public-card {max-width:860px;padding-block:7vh}
+
+.keyboard--hero .keycap:has(.flying-letter) {z-index:3}
+.flying-letter {position:absolute;left:50%;top:50%;pointer-events:none;display:grid;place-items:center;
+  min-width:1.7em;padding:.1em .3em;border:1px solid currentColor;border-radius:4px;color:var(--key-color);
+  background:var(--surface);font:600 13px/1.2 monospace;box-shadow:0 0 12px var(--soft-mint)}
+.flying-letter::before {content:"";position:absolute;right:100%;top:60%;height:1px;width:1.1em;background:linear-gradient(90deg,transparent,currentColor)}
+.landing-motion .typing-display {background:linear-gradient(110deg,var(--soft-mint),transparent 68%);border-radius:8px 8px 0 0}
+@media(prefers-reduced-motion:no-preference){
+ .landing-in-view {animation:landing-rise .68s cubic-bezier(.19,.78,.23,1) both}
+ .landing-in-view .section-head__kicker::after {content:"";display:inline-block;align-self:center;width:42px;height:2px;background:linear-gradient(90deg,var(--mint),transparent);transform-origin:left;animation:landing-line .85s ease-out both}
+ .arena-track__board.landing-in-view .arena-track__rail::after {content:"";position:absolute;inset-inline-start:0;top:50%;width:18%;height:3px;background:linear-gradient(90deg,transparent,var(--mint));animation:landing-lap 1.5s ease-out both}
+ .arena-track__board.landing-in-view .arena-track__lane--rival .arena-track__rail::after {animation-delay:.16s;background:linear-gradient(90deg,transparent,var(--blue))}
+ @keyframes landing-rise {from{opacity:.55;translate:0 18px}to{opacity:1;translate:none}}
+ @keyframes landing-line {from{transform:scaleX(0)}to{transform:scaleX(1)}}
+ @keyframes landing-lap {0%{left:0;opacity:0}25%{opacity:1}100%{left:82%;opacity:0}}
+}

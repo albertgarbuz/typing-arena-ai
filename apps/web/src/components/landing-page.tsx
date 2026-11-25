@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import studio from "./keyboard-studio.jpg";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import {
@@ -193,6 +192,25 @@ function HeroKeyboard() {
   const manual = useRef(false);
   const frame = useRef<HTMLElement>(null);
   function strike(key: KeyDef) {
+    const cap = frame.current?.querySelector<HTMLButtonElement>(`[data-letter="${key.label}"]`);
+    const display = frame.current?.querySelector(".typing-display");
+    if (cap && display && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const start = cap.getBoundingClientRect();
+      const target = display.getBoundingClientRect();
+      const dx = target.left + target.width * .72 - start.left - start.width / 2;
+      const dy = target.top + target.height / 2 - start.top - start.height / 2;
+      const glyph = document.createElement("i");
+      glyph.className = "flying-letter";
+      glyph.textContent = key.space ? "␣" : key.label;
+      glyph.setAttribute("aria-hidden", "true");
+      cap.appendChild(glyph);
+      const flight = glyph.animate([
+        { transform:"translate(-50%, -50%) scale(.8)", opacity:0 },
+        { transform:`translate(calc(-50% + ${dx*.22}px), calc(-50% + ${dy*.55}px)) skew(-12deg)`, opacity:1, offset:.4 },
+        { transform:`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.75)`, opacity:0 }
+      ], {duration:470, easing:"ease-out"});
+      flight.onfinish = () => glyph.remove();
+    }
     clearTimeout(release.current);
     setPressed(key);
     release.current = setTimeout(() => setPressed(null), 150);
@@ -255,10 +273,6 @@ function HeroKeyboard() {
   return (
     <figure className="hero-visual" ref={frame}>
       <div className="hero-visual__frame">
-        <div className="studio-shot" data-strike={pressed?.hand} aria-hidden="true">
-          <img className="studio-base" src={studio.src} alt="" width={960} height={412} />
-          {["left","right"].map(side => <img key={side} className={"studio-hand studio-"+side} src={studio.src} alt="" />)}
-        </div>
         <div className="hero-visual__topbar" aria-hidden="true">
           <span className="hero-visual__layout">ЙЦУКЕН</span>
           <span className="hero-visual__hint">основной ряд · опора на А и О</span>
@@ -270,7 +284,7 @@ function HeroKeyboard() {
             <div key={row.id} className={`keyboard__row keyboard__row--${row.id}`}>
               {row.keys.map((keyDef, index) => (
                 keyDef.mod ? <Keycap key={index} keyDef={keyDef} /> :
-                <button key={index} type="button" className={keycapClassName(keyDef)} data-pressed={pressed === keyDef}
+                <button key={index} type="button" className={keycapClassName(keyDef)} data-letter={keyDef.label} data-pressed={pressed === keyDef}
                   onClick={() => playKey(keyDef)}>{keyDef.label}</button>
               ))}
             </div>
@@ -1130,8 +1144,20 @@ function ClosingSection() {
 /* -------------------------------------------------------------------------- */
 
 export function LandingPage() {
+  const landing = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("landing-in-view");
+        observer.unobserve(entry.target);
+      }
+    }, {threshold:.15});
+    landing.current?.querySelectorAll(".section-head,.program-sample,.arena-track__board,.closing__cta,.dev-note").forEach(el=>observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
   return (
-    <>
+    <div ref={landing} className="landing-motion">
       <HeroSection />
       <FeatureStrip />
       <ProgramSection />
@@ -1139,7 +1165,7 @@ export function LandingPage() {
       <ArenaSection />
       <MethodologySection />
       <ClosingSection />
-    </>
+    </div>
   );
 }
 
