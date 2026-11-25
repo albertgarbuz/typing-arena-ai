@@ -40,11 +40,15 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
       return new Set<string>(Array.isArray(ids) ? ids : []);
     } catch { return new Set<string>(); }
   }, [userRaw]);
+  const openRuLevels = useMemo(() => {
+    try {const ids=JSON.parse(userRaw).openRuLevels;return new Set<number>(Array.isArray(ids)?ids:[]);}
+    catch {return new Set<number>();}
+  },[userRaw]);
   const levels = getCourseLevels(layout);
   const isPassed = (ex: LessonExercise) =>
     credited.has(ex.id) || (progress[ex.id]?.accuracy ?? 0) >= ex.minAccuracy;
   const isLevelUnlocked = (index: number) =>
-    index === 0 || levels[index-1].exercises.every(isPassed);
+    index === 0 || (layout==="ru" && openRuLevels.has(levels[index].level)) || levels[index-1].exercises.every(isPassed);
   const lessons = levels.flatMap(level => level.exercises.map(exercise => ({level: level.level, exercise})));
   const passed = ({exercise}: typeof lessons[number]) => isPassed(exercise);
   const totalLessons = lessons.length;

@@ -7,7 +7,17 @@ import { getCourseLevels } from "@/lib/typing/texts";
 import { getProgressRaw } from "@/lib/typing/storage";
 
 const digest = "fc8fefb8b50d15fda0c3097a8f201b20bc8dc77987ab2b26c9dbacd456e9af16";
-type CreditProfile = UserProfile & { creditedLessons?: string[] };
+const levelDigest = "4cd07f4bf023d49d068ca2b83599c7c0573684788339ac07b169c5532b94be84";
+type CreditProfile = UserProfile & { creditedLessons?: string[]; openRuLevels?: number[] };
+function openThirdLevel() {
+  const profile: CreditProfile = getCurrentUser();
+  if(profile.nickname.trim().toLowerCase() !== "fantom777") return "Открой ссылку в профиле Fantom777.";
+  if(!profile.openRuLevels?.includes(3)){
+    saveUser({...profile, openRuLevels:[...(profile.openRuLevels || []),3]} as CreditProfile);
+    if(!(getCurrentUser() as CreditProfile).openRuLevels?.includes(3)) throw new Error();
+  }
+  return "Уровень 3 открыт. Можно начать с урока 21.";
+}
 
 function redeem() {
   const profile: CreditProfile = getCurrentUser();
@@ -40,6 +50,7 @@ export default function RestoreLessons() {
       const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret));
       const actual = Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, "0")).join("");
       if (!mounted) return;
+      if (actual === levelDigest) { setMessage(openThirdLevel()); return; }
       if (actual !== digest) { setMessage("Открой личную ссылку из сообщения."); return; }
       const result = navigator.locks ? await navigator.locks.request("typing-arena-personal-credit", redeem) : redeem();
       if (mounted) setMessage(result);
@@ -48,7 +59,8 @@ export default function RestoreLessons() {
     return () => { mounted = false; };
   }, []);
   return <main className="layout-container public-card"><section className="campaign-board">
-    <h1>Перенос пройденных уроков</h1><p role="status">{message}</p>
+    <h1>Личный доступ к курсу</h1><p role="status">{message}</p>
+    {message.startsWith("Уровень 3 открыт") && <Link className="button button--primary" href="/learn/ru/3">Начать урок 21 →</Link>}
     <Link href="/learn" className="button button--primary">К моим урокам →</Link>
   </section></main>;
 }
