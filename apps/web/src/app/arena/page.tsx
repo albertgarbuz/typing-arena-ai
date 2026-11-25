@@ -1,5 +1,7 @@
 "use client";
 
+import "./race.css";
+
 import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
@@ -25,8 +27,6 @@ export default function ArenaLobbyPage() {
   const [mode, setMode] = useState<MatchMode>("1v1");
   const [timeControl, setTimeControl] = useState<TimeControl>("blitz");
   const [inMatch, setInMatch] = useState(false);
-  const [privateRoomCode, setPrivateRoomCode] = useState("");
-  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
   // Sync user profile
   const userRaw = useSyncExternalStore(subscribeUser, getUserRaw, getUserServerSnapshot);
@@ -82,8 +82,8 @@ export default function ArenaLobbyPage() {
               <span className="eyebrow">КИБЕРСПОРТИВНАЯ АРЕНА</span>
               <h1 className="arena-title">Клавогоночная Арена</h1>
               <p className="arena-lead">
-                Соревнуйтесь в реальном времени с живыми соперниками, собирайте команду 2х2
-                или сражайтесь в еженедельном турнире. Шахматный расчет Elo и честные дуэли.
+                Тренируйтесь с ботами в дуэлях, командных заездах и турнирной сетке.
+                Для игры с другом отправьте ссылку на испытание.
               </p>
             </div>
 
@@ -96,7 +96,7 @@ export default function ArenaLobbyPage() {
                     {chessRank.title}
                   </span>
                   <span className="arena-rank-card__elo">
-                    {rating} Elo · {league.name}
+                    {rating} очков · {league.name}
                   </span>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function ArenaLobbyPage() {
 
           {/* Chess Time Control Selector */}
           <div className="chess-time-controls-panel">
-            <span className="time-controls-label">Шахматный контроль времени:</span>
+            <span className="time-controls-label">Длительность заезда:</span>
             <div className="time-controls-buttons" role="radiogroup">
               <button
                 type="button"
@@ -142,7 +142,7 @@ export default function ArenaLobbyPage() {
                   timeControl === "bullet" ? "time-control-pill--active" : ""
                 }`}
               >
-                ⚡ Буллет (30 сек)
+                ⚡ Импульс (30 сек)
               </button>
               <button
                 type="button"
@@ -151,7 +151,7 @@ export default function ArenaLobbyPage() {
                   timeControl === "blitz" ? "time-control-pill--active" : ""
                 }`}
               >
-                ⏱️ Блиц (60 сек)
+                ⏱️ Турбо (60 сек)
               </button>
               <button
                 type="button"
@@ -160,7 +160,7 @@ export default function ArenaLobbyPage() {
                   timeControl === "rapid" ? "time-control-pill--active" : ""
                 }`}
               >
-                ⏳ Рапид (120 сек)
+                ⏳ Марафон (120 сек)
               </button>
             </div>
           </div>
@@ -173,10 +173,9 @@ export default function ArenaLobbyPage() {
                 <span className="mode-badge-live">ДУЭЛЬ 1 НА 1</span>
                 <span className="mode-icon">⚡</span>
               </div>
-              <h2 className="arena-mode-card__title">Рейтинговый заезд</h2>
+              <h2 className="arena-mode-card__title">Дуэль скорости</h2>
               <p className="arena-mode-card__desc">
-                Классический поединок один на один с соперником вашей весовой категории.
-                Победа повышает Elo и дарует серебряные медали.
+                Поединок один на один с ботом. Результат сохраняется в вашем браузере.
               </p>
               <button
                 type="button"
@@ -194,10 +193,9 @@ export default function ArenaLobbyPage() {
                 <span className="mode-badge">КОМАНДЫ 2Х2</span>
                 <span className="mode-icon">🤝</span>
               </div>
-              <h2 className="arena-mode-card__title">Командная битва 2 на 2</h2>
+              <h2 className="arena-mode-card__title">Командный шторм 2 на 2</h2>
               <p className="arena-mode-card__desc">
-                Сражайтесь в тандеме! Вы и напарник (Синие болиды) против команды соперников
-                (Красные болиды). Суммарная скорость решает исход.
+                Вы и бот-напарник против команды ботов. Побеждает команда с большей суммарной скоростью.
               </p>
               <button
                 type="button"
@@ -215,9 +213,9 @@ export default function ArenaLobbyPage() {
                 <span className="mode-badge mode-badge--gold">ТУРНИР НЕДЕЛИ</span>
                 <span className="mode-icon">🏆</span>
               </div>
-              <h2 className="arena-mode-card__title">Еженедельный Гран-при</h2>
+              <h2 className="arena-mode-card__title">Кубок Импульса</h2>
               <p className="arena-mode-card__desc">
-                Сетка на выбывание: 1/4 финала → Полуфинал → Гранд-финал.
+                Тренировочная сетка с ботами: 1/4 финала → Полуфинал → Гранд-финал.
                 Победитель забирает Золотую медаль 🥇, Кубок 🏆 и +300 монет мастерства.
               </p>
               <button
@@ -236,9 +234,9 @@ export default function ArenaLobbyPage() {
                 <span className="mode-badge">ТАКТИКА ДНЯ</span>
                 <span className="mode-icon">♟️</span>
               </div>
-              <h2 className="arena-mode-card__title">Шахматный этюд</h2>
+              <h2 className="arena-mode-card__title">Испытание точности</h2>
               <p className="arena-mode-card__desc">
-                Тактическая связка повышенной сложности: редкие знаки, пунктуация и шахматная нотация.
+                Тактическая связка повышенной сложности: редкие знаки и пунктуация.
                 Требуется 100% точность для победы.
               </p>
               <button
@@ -246,54 +244,18 @@ export default function ArenaLobbyPage() {
                 onClick={() => startSelectedMatch("etude")}
                 className="button button--secondary arena-btn-play"
               >
-                <span>Решить этюд</span>
+                <span>Начать испытание</span>
                 <IconArrowRight size={18} />
               </button>
             </div>
 
-            {/* Mode 5: Duel with Friend / Private Room */}
             <div className="arena-mode-card arena-mode-card--fullwidth">
-              <div className="arena-mode-card__top">
-                <span className="mode-badge">ИГРА С ДРУЗЬЯМИ</span>
-                <span className="mode-icon">👥</span>
-              </div>
-              <h2 className="arena-mode-card__title">Приватная комната с друзьями</h2>
+              <h2 className="arena-mode-card__title">Вызвать друга</h2>
               <p className="arena-mode-card__desc">
-                Создайте закрытую дуэль и отправьте код другу для заезда в одной сети Wi-Fi или через интернет.
+                Пройдите тест и поделитесь ссылкой. Друг получит тот же текст и сможет сравнить результат.
               </p>
-
-              {!isCreatingRoom ? (
-                <div className="arena-room-actions">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const code = Math.random().toString(36).substring(2, 7).toUpperCase();
-                      setPrivateRoomCode(code);
-                      setIsCreatingRoom(true);
-                    }}
-                    className="button button--secondary"
-                  >
-                    <span>Сгенерировать код комнаты</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="private-room-box">
-                  <div className="private-room-code-badge">
-                    Код комнаты: <strong>{privateRoomCode}</strong>
-                  </div>
-                  <p className="private-room-hint">
-                    Друг может ввести этот код и мгновенно подключиться к вашему заезду!
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => startSelectedMatch("1v1")}
-                    className="button button--primary"
-                  >
-                    <span>Запустить гонку с другом</span>
-                    <IconArrowRight size={16} />
-                  </button>
-                </div>
-              )}
+              <Link href="https://typing-arena-ai.albert-garbuz89.chatgpt.site/duel/" className="button button--primary">Дуэль в реальном времени</Link>
+              <Link href="https://typing-arena-ai.albert-garbuz89.chatgpt.site/challenge/" className="button button--secondary">Открыть испытание</Link>
             </div>
           </div>
 
@@ -332,7 +294,7 @@ export default function ArenaLobbyPage() {
                           m.deltaElo >= 0 ? "elo-plus" : "elo-minus"
                         }`}
                       >
-                        {m.deltaElo >= 0 ? `+${m.deltaElo}` : m.deltaElo} Elo
+                        {m.deltaElo >= 0 ? `+${m.deltaElo}` : m.deltaElo} очков
                       </span>
                     </div>
                   </div>

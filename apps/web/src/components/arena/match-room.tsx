@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { RaceTrack } from "./race-track";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/lib/arena/engine";
 import type { MatchMode, Racer, TimeControl } from "@/lib/arena/types";
 import {
+  getChessRank,
   addXpAndCoins,
   awardMedal,
   getCurrentUser,
@@ -42,7 +43,9 @@ export function MatchRoom({
   // Tournament stage state
   const [tournamentStage, setTournamentStage] = useState<"quarter" | "semi" | "final">("quarter");
 
-  const currentUser = getCurrentUser();
+  const [currentUser, setCurrentUser] = useState(getCurrentUser);
+  const settled = useRef(false);
+  const [promotion, setPromotion] = useState("");
   const playerRating = layout === "ru" ? currentUser.ratingRu : currentUser.ratingEn;
 
   // Single player racer
@@ -68,15 +71,18 @@ export function MatchRoom({
   // Race text & typing buffer
   const [raceText, setRaceText] = useState(() => getRandomArenaText(layout, mode));
   const [inputBuffer, setInputBuffer] = useState("");
+  const [secondsLeft, setSecondsLeft] = useState(0);
   const [deltaElo, setDeltaElo] = useState<number>(0);
   const [winner, setWinner] = useState<"player" | "rival" | "blue" | "red" | null>(null);
 
+  const attempts = useRef({ total: 0, errors: 0 });
   const startTimeRef = useRef<number | null>(null);
   const botIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // 1. Searching / Matchmaking phase
   useEffect(() => {
+    if (phase !== "searching") return;
     const timer = setTimeout(() => {
       if (mode === "2v2") {
         const roster = create2v2MatchRoster(
@@ -92,7 +98,7 @@ export function MatchRoom({
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [layout, mode, playerRating, currentUser.nickname, currentUser.avatar]);
+  }, [phase, layout, mode, playerRating, currentUser.nickname, currentUser.avatar]);
 
   // 2. Countdown phase
   useEffect(() => {
@@ -114,7 +120,9 @@ export function MatchRoom({
 
   // 3. Finish Match handler
   const handleFinishMatch = useCallback(
-    (isWin: boolean) => {
+    (isWin: boolean, finalCpm = player.cpm, finalAccuracy = player.accuracy) => {
+      if (settled.current) return;
+      settled.current = true;
       if (botIntervalRef.current) clearInterval(botIntervalRef.current);
       setPhase("finished");
 
@@ -126,7 +134,7 @@ export function MatchRoom({
         updateUserRating(layout, delta, isWin, "2v2");
         if (isWin) {
           unlockAchievement("team_win");
-          awardMedal("silver");
+
         }
       } else if (mode === "tournament") {
         setWinner(isWin ? "player" : "rival");
@@ -138,10 +146,11 @@ export function MatchRoom({
           } else if (tournamentStage === "final") {
             updateUserRating(layout, delta * 3, true, "tournament");
             unlockAchievement("tournament_podium");
-            awardMedal("gold");
+
             addXpAndCoins(300, 150);
           }
         }
+        if (!isWin) updateUserRating(layout, delta, false, "tournament");
       } else if (mode === "etude") {
         setWinner(isWin ? "player" : "rival");
         if (isWin) {
@@ -155,6 +164,11 @@ export function MatchRoom({
         updateUserRating(layout, delta, isWin, "1v1");
       }
 
+      const updated = getCurrentUser();
+      const newRating = layout === "ru" ? updated.ratingRu : updated.ratingEn;
+      const rank = getChessRank(newRating);
+      setPromotion(rank.minElo > getChessRank(playerRating).minElo ? rank.title : "");
+      setDeltaElo(newRating - playerRating);
       saveMatchResult({
         id: `match-${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -162,19 +176,32 @@ export function MatchRoom({
         mode,
         timeControl,
         textSnippet: raceText.slice(0, 45) + "...",
-        myCpm: player.cpm,
-        myAccuracy: player.accuracy,
+        myCpm: finalCpm,
+        myAccuracy: finalAccuracy,
         rivalName: mode === "2v2" ? "Команда Красных" : rival.name,
         rivalAvatar: mode === "2v2" ? "🏎️" : rival.avatar,
         rivalCpm: rival.cpm,
         isWin,
-        deltaElo: delta,
-        myRatingAfter: playerRating + delta,
-        medalAwarded: isWin ? (mode === "tournament" ? "gold" : "silver") : undefined,
+        deltaElo: newRating - playerRating,
+        myRatingAfter: newRating,
+        medalAwarded: !isWin || (mode === "tournament" && tournamentStage !== "final") ? undefined : mode === "etude" || mode === "tournament" ? "gold" : "silver",
       });
     },
     [layout, mode, player.accuracy, player.cpm, playerRating, raceText, rival, timeControl, tournamentStage]
   );
+
+  useEffect(() => {
+    if (phase !== "racing" || !startTimeRef.current) return;
+    const duration = timeControl === "bullet" ? 30 : timeControl === "rapid" ? 120 : 60;
+    const remaining = Math.max(0, duration - Math.floor((Date.now() - startTimeRef.current) / 1000));
+    setSecondsLeft(remaining);
+    if (!remaining) {
+      const opposition = mode === "2v2" ? Math.max(...teamRed.map(r => r.progressPercent)) : rival.progressPercent;
+      handleFinishMatch(player.progressPercent > opposition);
+    }
+  }, [phase, timeControl, mode, teamRed, rival.progressPercent, player.progressPercent, handleFinishMatch]);
+
+  const finishFromClock = useEffectEvent(() => handleFinishMatch(false));
 
   // 4. Bot progress loop
   useEffect(() => {
@@ -207,7 +234,7 @@ export function MatchRoom({
           });
 
           if (redFinishedFirst && !player.isFinished) {
-            setTimeout(() => handleFinishMatch(false), 200);
+            queueMicrotask(() => finishFromClock());
           }
           return updated;
         });
@@ -224,7 +251,7 @@ export function MatchRoom({
           const nextPct = Math.min(100, prev.progressPercent + pctPerTick);
 
           if (nextPct >= 100 && !player.isFinished) {
-            setTimeout(() => handleFinishMatch(false), 200);
+            queueMicrotask(() => finishFromClock());
           }
 
           return {
@@ -239,40 +266,32 @@ export function MatchRoom({
     return () => {
       if (botIntervalRef.current) clearInterval(botIntervalRef.current);
     };
-  }, [phase, player.isFinished, raceText.length, mode, handleFinishMatch]);
+  }, [phase, player.isFinished, raceText.length, mode]);
 
   // 5. Handle player keystrokes
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (phase !== "racing") return;
-
-    if (e.key === "Backspace") {
-      e.preventDefault();
-      if (inputBuffer.length > 0) {
-        setInputBuffer((prev) => prev.slice(0, -1));
-      }
-      return;
-    }
-
-    if (e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) return;
-    e.preventDefault();
-
-    const nextChar = e.key;
-    const currentIndex = inputBuffer.length;
-    const expectedChar = raceText[currentIndex];
-
-    if (nextChar === expectedChar) {
-      const nextBuffer = inputBuffer + nextChar;
+  const handleInput = (nextBuffer: string) => {
+    if (phase !== "racing" || settled.current) return;
+    const valid = raceText.startsWith(nextBuffer);
+    {
       setInputBuffer(nextBuffer);
 
       const elapsed = startTimeRef.current
         ? Math.max(0.5, (Date.now() - startTimeRef.current) / 1000)
         : 1;
-      const currentCpm = Math.round((nextBuffer.length * 60) / elapsed);
-      const progressPct = (nextBuffer.length / raceText.length) * 100;
+      const added = Math.max(0, nextBuffer.length - inputBuffer.length);
+      attempts.current.total += added;
+      for (let i = nextBuffer.length - added; i < nextBuffer.length; i++) {
+        if (nextBuffer[i] !== raceText[i]) attempts.current.errors++;
+      }
+      const accuracy = attempts.current.total ? Math.round(100 * (1 - attempts.current.errors / attempts.current.total)) : 100;
+      let correct = 0;
+      while (correct < nextBuffer.length && nextBuffer[correct] === raceText[correct]) correct++;
+      const currentCpm = Math.round(correct * 60 / elapsed);
+      const progressPct = correct / raceText.length * 100;
 
       setPlayer((prev) => ({
         ...prev,
-        cpm: currentCpm,
+        accuracy, cpm: currentCpm,
         progressPercent: progressPct,
         isFinished: progressPct >= 100,
       }));
@@ -289,20 +308,24 @@ export function MatchRoom({
       }
 
       // Player won!
-      if (nextBuffer.length >= raceText.length) {
-        handleFinishMatch(true);
+      if (valid && nextBuffer.length === raceText.length) {
+        handleFinishMatch(true, currentCpm, accuracy);
       }
     }
   };
 
   const restartRace = () => {
+    setCurrentUser(getCurrentUser());
+    settled.current = false;
+    attempts.current = { total: 0, errors: 0 };
+    setPromotion("");
     setInputBuffer("");
     setRaceText(getRandomArenaText(layout, mode));
     setWinner(null);
     setPlayer((prev) => ({ ...prev, progressPercent: 0, cpm: 0, isFinished: false }));
     setRival(createRivalBot(playerRating, layout));
     setCountdown(3);
-    setPhase("countdown");
+    setPhase("searching");
   };
 
   const advanceTournamentRound = () => {
@@ -331,11 +354,11 @@ export function MatchRoom({
                     : "ГРАНД-ФИНАЛ"
                 })`
               : mode === "etude"
-              ? "ШАХМАТНЫЙ ЭТЮД ДНЯ"
+              ? "ИСПЫТАНИЕ ТОЧНОСТИ"
               : "РЕЙТИНГОВАЯ ДУЭЛЬ 1 НА 1"}
           </span>
           <span className="room-time-badge">
-            {timeControl === "bullet" ? "⚡ Буллет (30 с)" : timeControl === "rapid" ? "⏳ Рапид (120 с)" : "⏱️ Блиц (60 с)"}
+            {timeControl === "bullet" ? "⚡ Импульс (30 с)" : timeControl === "rapid" ? "⏳ Марафон (120 с)" : "⏱️ Турбо (60 с)"}
           </span>
         </div>
 
@@ -367,7 +390,8 @@ export function MatchRoom({
       {/* Countdown overlay */}
       {phase === "countdown" ? (
         <div className="match-countdown-overlay">
-          <span className="countdown-number">{countdown}</span>
+          <div aria-hidden="true" className="kinetic-keys">{(layout === "ru" ? ["Ф","Ы","В","А"] : ["A","S","D","F"]).map(key => <i key={key}>{key}</i>)}</div>
+          <span key={countdown} className="countdown-number">{countdown}</span>
           <p className="countdown-hint">Приготовьте пальцы на исходной позиции (ФЫВА / ОЛДЖ)!</p>
         </div>
       ) : null}
@@ -378,7 +402,7 @@ export function MatchRoom({
           {/* Visual Dual/Quad Race Track */}
           <RaceTrack racers={allRacersList} />
 
-          {/* Typing Text Box */}
+          <p className="room-time-badge">{phase === "racing" ? `До финиша · ${secondsLeft} с` : "Финиш"}</p>
           <div className="arena-race-box">
             <p className="arena-target-text" aria-label="Текст для набора">
               {raceText.split("").map((char, index) => {
@@ -392,7 +416,7 @@ export function MatchRoom({
 
                 return (
                   <span key={index} className={`race-char ${statusClass}`}>
-                    {char === " " ? "␣" : char}
+                    {char}
                   </span>
                 );
               })}
@@ -401,9 +425,12 @@ export function MatchRoom({
             <input
               ref={inputRef}
               type="text"
-              value=""
-              onChange={() => {}}
-              onKeyDown={handleKeyDown}
+              value={inputBuffer}
+              onChange={(event) => handleInput(event.target.value)}
+              onPaste={(event) => event.preventDefault()}
+              onDrop={(event) => event.preventDefault()}
+              maxLength={raceText.length}
+              autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
               className="arena-live-input"
               autoFocus
               aria-label="Поле набора текста для дуэли"
@@ -418,6 +445,7 @@ export function MatchRoom({
       {phase === "finished" ? (
         <div className="match-result-modal-backdrop">
           <div className="match-result-modal">
+            {promotion && <p className="arena-promotion" role="status">Новый ранг · {promotion}</p>}
             <div className="result-modal-icon">
               {winner === "player" || winner === "blue" ? "🏆" : "🏎️"}
             </div>
@@ -431,7 +459,7 @@ export function MatchRoom({
             <p className="result-modal-desc">
               {winner === "player" || winner === "blue"
                 ? mode === "tournament"
-                  ? "Блестящая победа в раунде плей-офф! Рейтинг и медали зачислены."
+                  ? (tournamentStage === "final" ? "Вы выиграли финал Кубка импульса." : "Вы прошли в следующий раунд.")
                   : "Вы пришли к финишу первым благодаря чистому темпу и точности."
                 : "Соперник оказался быстрее на долю секунды. Проанализируйте темп и возьмите реванш!"}
             </p>
@@ -456,16 +484,16 @@ export function MatchRoom({
             </div>
 
             {/* Medals awarded */}
-            {(winner === "player" || winner === "blue") ? (
+            {(winner === "player" || winner === "blue") && (mode !== "tournament" || tournamentStage === "final") ? (
               <div className="result-medal-award-box">
                 <span className="award-medal-icon">
-                  {mode === "tournament" && tournamentStage === "final" ? "🥇" : "🥈"}
+                  {mode === "tournament" && tournamentStage === "final" ? "🥇" : mode === "etude" ? "🥇" : "🥈"}
                 </span>
                 <div>
                   <h4 className="award-title">
                     {mode === "tournament" && tournamentStage === "final"
                       ? "Золотая медаль чемпионата!"
-                      : "Серебряная медаль дуэли!"}
+                      : mode === "etude" ? "Золотая медаль за точность!" : "Серебряная медаль заезда!"}
                   </h4>
                   <p className="award-sub">Трофей добавлен в вашу коллекцию на полку медалей в Профиле.</p>
                 </div>
@@ -485,7 +513,7 @@ export function MatchRoom({
               ) : (
                 <button
                   type="button"
-                  onClick={restartRace}
+                  onClick={() => { setTournamentStage("quarter"); restartRace(); }}
                   className="button button--primary"
                 >
                   <IconRepeat size={16} />

@@ -12,7 +12,7 @@ export function SiteFooter() {
             <p className="site-footer__name">Typing Arena AI</p>
             <p className="site-footer__tagline">
               Спортивная платформа слепой печати: 100 пошаговых уроков, AI-тренер,
-              шахматная система рейтингов Elo, командные заезды 2 на 2 и еженедельные турниры.
+              спортивная система рейтингов Elo, командные заезды 2 на 2 и еженедельные турниры.
             </p>
           </div>
         </div>

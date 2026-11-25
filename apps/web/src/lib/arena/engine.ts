@@ -15,24 +15,24 @@ export function calculateEloChange(
 }
 
 export const BOT_PROFILES_RU = [
-  { name: "Сокол_99", avatar: "🦅", title: "Мастер FM" },
-  { name: "Стремительный_Лис", avatar: "🦊", title: "КМС" },
-  { name: "Клавишный_Ниндзя", avatar: "🥷", title: "Гроссмейстер GM" },
-  { name: "Неоновый_Гонщик", avatar: "🏎️", title: "Мастер FM" },
-  { name: "Тайфун_Ввода", avatar: "⚡", title: "Международный мастер IM" },
-  { name: "Кибер_Барс", avatar: "🐆", title: "1-й разряд" },
-  { name: "Метеор_F1", avatar: "☄️", title: "КМС" },
-  { name: "Ферзевый_Гамбит", avatar: "👑", title: "Гроссмейстер GM" },
-  { name: "Стальной_Ритм", avatar: "🦾", title: "Мастер FM" },
+  { name: "Сокол_99", avatar: "🦅", title: "Форсаж" },
+  { name: "Стремительный_Лис", avatar: "🦊", title: "Импульс" },
+  { name: "Клавишный_Ниндзя", avatar: "🥷", title: "Легенда арены" },
+  { name: "Неоновый_Гонщик", avatar: "🏎️", title: "Форсаж" },
+  { name: "Тайфун_Ввода", avatar: "⚡", title: "Сверхновая" },
+  { name: "Кибер_Барс", avatar: "🐆", title: "Спринтер" },
+  { name: "Метеор_F1", avatar: "☄️", title: "Импульс" },
+  { name: "Орбитальный_Пилот", avatar: "👑", title: "Легенда арены" },
+  { name: "Стальной_Ритм", avatar: "🦾", title: "Форсаж" },
 ];
 
 export const BOT_PROFILES_EN = [
-  { name: "SwiftFalcon", avatar: "🦅", title: "FM" },
-  { name: "CyberDrifter", avatar: "🏎️", title: "IM" },
-  { name: "VelocityKnight", avatar: "⚔️", title: "GM" },
-  { name: "PulseTypist", avatar: "⚡", title: "CM" },
-  { name: "HyperNova", avatar: "🌟", title: "GM" },
-  { name: "GrandMasterKeys", avatar: "👑", title: "GM" },
+  { name: "SwiftFalcon", avatar: "🦅", title: "Форсаж" },
+  { name: "CyberDrifter", avatar: "🏎️", title: "Сверхновая" },
+  { name: "VelocityKnight", avatar: "⚔️", title: "Легенда" },
+  { name: "PulseTypist", avatar: "⚡", title: "Импульс" },
+  { name: "HyperNova", avatar: "🌟", title: "Легенда" },
+  { name: "OrbitKeys", avatar: "👑", title: "Легенда" },
 ];
 
 export function createRivalBot(
@@ -100,47 +100,19 @@ export const ARENA_TEXTS_RU = [
   "На высокой скорости трасса не прощает ошибок. Один сбой ломает темп и отбрасывает назад. Держите пальцы на базовом ряду, чувствуйте ориентиры и двигайтесь к финишу на пределе возможностей.",
   "Истинный мастер печати обгоняет соперников за счёт стабильности. Когда пальцы скользят по клавишам легко и непрерывно, скорость нарастает сама, оставляя противника позади.",
   "Секунды тают на глазах, когда оба гонщика идут ноздря в ноздрю. В этот момент решает только мышечная память и абсолютная концентрация на каждом символе текста.",
-  "Шахматная стратегия на клавиатуре проста: не делай резких лишних движений, просчитывай следующие три слова наперёд и держи непрерывный каденс ударов по клавишам.",
+  "Секрет ровного темпа прост: не делай резких лишних движений, просчитывай следующие три слова наперёд и держи непрерывный каденс ударов по клавишам.",
 ];
 
 export const ARENA_TEXTS_EN = [
   "True champions in the typing arena stay calm under intense pressure. Rapid fingers strike with absolute confidence, turning pure focus into unmatched velocity on the racetrack.",
   "In a sprint duel every single keystroke matters. Avoid hasty mistakes that break your cadence, trust your muscle memory, and surge ahead across the finish line.",
   "Speed without precision leads to defeat. Maintain a steady, relentless rhythm from the first word to the last, and victory in the arena will be yours.",
-  "Like in chess, high-speed typing requires forethought: scan two words ahead, keep calm breathing, and let finger muscle memory execute the moves cleanly.",
+  "High-speed typing requires forethought: scan two words ahead, keep calm breathing, and let finger muscle memory execute the moves cleanly.",
 ];
 
 // Chess Keyboard Etudes: complex tactical combinations
-export const CHESS_ETUDES_RU = [
-  {
-    title: "Этюд №1: Ферзевый маневр",
-    hint: "Сложная связка с цифрами и скобками без единой ошибки",
-    text: "Гроссмейстер объявил мат в 3 хода: Кf3-d4, Сe7-b4+ и Фh5#! Время реакции — 0.2 секунды на клавишу.",
-  },
-  {
-    title: "Этюд №2: Ладейный эндшпиль",
-    hint: "Ритм пунктуации и редких букв: ф, ъ, щ, э",
-    text: "Проходная пешка «а7» защищена ладьёй. Чёрные вынуждены отдать фигуру: Лd1-d8+ с неизбежным превращением.",
-  },
-  {
-    title: "Этюд №3: Сицилианская контратака",
-    hint: "Высокий темп спринта на верхнем ряду",
-    text: "В сицилианской защите каждая оплошность ведёт к краху позиции; хладнокровие решает исход битвы.",
-  },
-];
-
-export const CHESS_ETUDES_EN = [
-  {
-    title: "Tactical Etude #1: Queen's Sac",
-    hint: "High-precision chess notation with brackets and symbols",
-    text: "White sacrificed the queen with 1.Qxf7+! Kxf7 2.Bc4+ Kg6, delivering an unstoppable checkmate.",
-  },
-  {
-    title: "Tactical Etude #2: Rook Endgame",
-    hint: "Punctuation rhythm and rare symbols sprint",
-    text: "The passed pawn on d7 advances swiftly; Black's king cannot prevent 38.d8=Q+ with decisive advantage.",
-  },
-];
+export const CHESS_ETUDES_RU = [{ title: "Спринт разработчика", hint: "Код и пунктуация", text: "скорость = 120; пока (таймер > 0) { ритм = скорость + 1; }" }, { title: "Код импульса", hint: "Цифры и пунктуация", text: "Сектор 7: частота 42 Гц. На счёт три запустите цикл (А-19), удержите ритм и подтвердите сигнал!" }];
+export const CHESS_ETUDES_EN = [{ title: "Code sprint", hint: "Brackets and punctuation", text: "const speed = 120; const ready = true; if (ready) { startRace(speed); }" }, { title: "Signal relay", hint: "Numbers and punctuation", text: "Sector 7: set the relay to 42 Hz. Start cycle (A-19), keep a steady rhythm, and confirm the signal!" }];
 
 export function getRandomArenaText(layout: "ru" | "en", mode: MatchMode = "1v1"): string {
   if (mode === "etude") {

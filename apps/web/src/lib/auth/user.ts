@@ -53,9 +53,9 @@ export interface ChessRankInfo {
 export function getChessRank(rating: number): ChessRankInfo {
   if (rating >= 2000) {
     return {
-      title: "Гроссмейстер слепой печати (GM)",
-      code: "GM",
-      badge: "👑 GM",
+      title: "Легенда арены",
+      code: "Легенда",
+      badge: "👑 Легенда",
       color: "#FFD700",
       minElo: 2000,
       description: "Высшее звание. Безупречный ритм, филигранная точность свыше 400 CPM.",
@@ -63,9 +63,9 @@ export function getChessRank(rating: number): ChessRankInfo {
   }
   if (rating >= 1700) {
     return {
-      title: "Международный мастер (IM)",
-      code: "IM",
-      badge: "⭐ IM",
+      title: "Сверхновая",
+      code: "Сверхновая",
+      badge: "⭐ Сверхновая",
       color: "#E040FB",
       minElo: 1700,
       description: "Элита скоростной печати. Победы в рапиде и блице против сильнейших.",
@@ -73,9 +73,9 @@ export function getChessRank(rating: number): ChessRankInfo {
   }
   if (rating >= 1400) {
     return {
-      title: "Мастер скорости (FM)",
-      code: "FM",
-      badge: "⚔️ FM",
+      title: "Форсаж",
+      code: "Форсаж",
+      badge: "⚔️ Форсаж",
       color: "#00E5FF",
       minElo: 1400,
       description: "Уверенная слепая десятипальцевая печать без взглядов на клавиатуру.",
@@ -83,9 +83,9 @@ export function getChessRank(rating: number): ChessRankInfo {
   }
   if (rating >= 1200) {
     return {
-      title: "Кандидат в мастера (CM)",
-      code: "CM",
-      badge: "♟️ CM",
+      title: "Импульс",
+      code: "Импульс",
+      badge: "⚡ Импульс",
       color: "#69F0AE",
       minElo: 1200,
       description: "Стабильный темп, владение всеми рядами и знаками препинания.",
@@ -93,9 +93,9 @@ export function getChessRank(rating: number): ChessRankInfo {
   }
   if (rating >= 1000) {
     return {
-      title: "Любитель 1-го разряда",
-      code: "1Р",
-      badge: "🎯 1Р",
+      title: "Спринтер",
+      code: "Спринтер",
+      badge: "🎯 Спринтер",
       color: "#FFD54F",
       minElo: 1000,
       description: "Базовый уровень соревнований. Регулярная практика и первые победы.",
@@ -203,9 +203,9 @@ export const ACHIEVEMENTS_LIST: Achievement[] = [
   },
   {
     code: "chess_etude",
-    title: "Шахматный тактик",
+    title: "Виртуоз точности",
     description: "Решите клавиатурный этюд без ошибок за рекордное время",
-    icon: "♟️",
+    icon: "⚡",
     xpReward: 200,
     coinReward: 100,
   },
@@ -233,7 +233,7 @@ export const SHOP_AVATARS: ShopAvatar[] = [
   { avatar: "🏎️", name: "Болид F1", cost: 150, description: "Чистая скорость на треке" },
   { avatar: "⚡", name: "Молния", cost: 200, description: "Энергия каждого нажатия" },
   { avatar: "🚀", name: "Ракета", cost: 250, description: "Преодолевая звуковой барьер" },
-  { avatar: "👑", name: "Король", cost: 500, description: "Гроссмейстер клавиатуры" },
+  { avatar: "👑", name: "Король", cost: 500, description: "Чемпион скорости" },
   { avatar: "🐉", name: "Дракон", cost: 750, description: "Легендарный огненный темп" },
   { avatar: "🦾", name: "Киборг", cost: 1000, description: "Идеальная машинная точность" },
 ];
@@ -247,9 +247,9 @@ export interface ShopTitle {
 export const SHOP_TITLES: ShopTitle[] = [
   { title: "Новичок клавиатуры", cost: 0, description: "Первые шаги к мастерству" },
   { title: "Пальцы-молнии", cost: 150, description: "Стремительный разгон на старте" },
-  { title: "Тактик клавиш", cost: 250, description: "Шахматный расчёт каждого хода" },
+  { title: "Тактик клавиш", cost: 250, description: "Чувствует ритм каждого слова" },
   { title: "Гроза Арены", cost: 400, description: "Непобедимый дуэлянт" },
-  { title: "Гроссмейстер слепой печати", cost: 800, description: "Абсолютный авторитет" },
+  { title: "Легенда арены", cost: 800, description: "Абсолютный авторитет" },
 ];
 
 const USER_STORAGE_KEY = "typing-arena-current-user";
@@ -301,8 +301,10 @@ export function getDefaultUser(): UserProfile {
   };
 }
 
+const defaultSnapshot = JSON.stringify(getDefaultUser());
+
 export function getUserServerSnapshot(): string {
-  return JSON.stringify(getDefaultUser());
+  return defaultSnapshot;
 }
 
 export function getUserRaw(): string {
@@ -313,6 +315,15 @@ export function getUserRaw(): string {
       const def = getDefaultUser();
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(def));
       return JSON.stringify(def);
+    }
+    const legacy = "Гроссмейстер слепой печати";
+    if (raw.includes(legacy)) {
+      const profile = JSON.parse(raw);
+      if (profile.activeTitle === legacy) profile.activeTitle = "Легенда арены";
+      if (Array.isArray(profile.unlockedTitles)) profile.unlockedTitles = profile.unlockedTitles.map((title: string) => title === legacy ? "Легенда арены" : title);
+      const migrated = JSON.stringify(profile);
+      localStorage.setItem(USER_STORAGE_KEY, migrated);
+      return migrated;
     }
     return raw;
   } catch {
@@ -381,9 +392,7 @@ export function addXpAndCoins(
     );
     if (diffDays === 1) {
       user.streakDays += 1;
-      if (user.streakDays >= 7) {
-        unlockAchievement("streak_7");
-      }
+      
     } else if (diffDays > 1) {
       user.streakDays = 1;
     }
@@ -391,6 +400,7 @@ export function addXpAndCoins(
   }
 
   saveUser(user);
+  if (user.streakDays >= 7) unlockAchievement("streak_7");
   return { newLevel: nextLevel, newXp: nextXp, leveledUp };
 }
 
@@ -457,8 +467,9 @@ export function updateUserRating(
     user.ratingEn = Math.max(100, user.ratingEn + delta);
   }
   user.totalMatches += 1;
+  if (isWin) user.wins += 1;
+  saveUser(user);
   if (isWin) {
-    user.wins += 1;
     if (user.wins === 1) unlockAchievement("arena_first_win");
     if (user.wins === 5) unlockAchievement("arena_5_wins");
     if (matchType === "2v2") unlockAchievement("team_win");

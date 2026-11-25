@@ -378,7 +378,7 @@ export const EN_COURSE_LEVELS: CourseLevel[] = [
   },
   {
     level: 10,
-    title: "Arena Speed Sprint & Grandmaster",
+    title: "Arena Speed Sprint & Champion",
     description: "Competitive sprint milestones from 150 to 400 CPM.",
     fingerFocus: "Peak velocity and championship cadence",
     exercises: [
@@ -390,8 +390,8 @@ export const EN_COURSE_LEVELS: CourseLevel[] = [
       { id: "en-96", title: "Lesson 96: Platinum League: 260 CPM", description: "Elite platinum benchmark.", targetKeys: ["sprint"], text: "Your eyes read whole words ahead while fingers execute keystrokes in perfect sequence.", minAccuracy: 97, targetCpm: 260 },
       { id: "en-97", title: "Lesson 97: Milestone 300 CPM (Keyboard Master)", description: "Elite typing prowess.", targetKeys: ["sprint"], text: "Three hundred characters per minute is achieved only through absolute harmony of mind and hands.", minAccuracy: 98, targetCpm: 300 },
       { id: "en-98", title: "Lesson 98: Champion Semifinal: 330 CPM", description: "Championship velocity.", targetKeys: ["sprint"], text: "Lightning strikes across keys blend into a single continuous melody of victory.", minAccuracy: 98, targetCpm: 330 },
-      { id: "en-99", title: "Lesson 99: Legend Milestone: 360 CPM", description: "Approaching grandmaster ranking.", targetKeys: ["sprint"], text: "You are now counted among the fastest typists in the world! Only the final test remains.", minAccuracy: 98, targetCpm: 360 },
-      { id: "en-100", title: "Lesson 100: Grandmaster of the Arena (400 CPM)", description: "The ultimate 400 CPM achievement.", targetKeys: ["sprint"], text: "Congratulations! You have completely conquered touch typing and taken your place among Champions!", minAccuracy: 98, targetCpm: 400 },
+      { id: "en-99", title: "Lesson 99: Legend Milestone: 360 CPM", description: "Approaching champion rank.", targetKeys: ["sprint"], text: "You are now counted among the fastest typists in the world! Only the final test remains.", minAccuracy: 98, targetCpm: 360 },
+      { id: "en-100", title: "Lesson 100: Champion of the Arena (400 CPM)", description: "The ultimate 400 CPM achievement.", targetKeys: ["sprint"], text: "Congratulations! You have completely conquered touch typing and taken your place among Champions!", minAccuracy: 98, targetCpm: 400 },
     ],
   },
 ];

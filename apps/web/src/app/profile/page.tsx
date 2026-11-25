@@ -413,7 +413,7 @@ export default function ProfilePage() {
 
             {/* Chess Rank & Elo */}
             <div className="dashboard-card chess-rank-card">
-              <span className="dashboard-card__eyebrow">ШАХМАТНЫЙ ТАБЕЛЬ О РАНГАХ</span>
+              <span className="dashboard-card__eyebrow">ЛИГИ СКОРОСТИ</span>
               <div className="chess-rank-top">
                 <span className="chess-rank-badge-large" style={{ color: chessRank.color }}>
                   {chessRank.badge}
@@ -494,7 +494,7 @@ export default function ProfilePage() {
                   profileTab === "chess" ? "profile-tab-btn--active" : ""
                 }`}
               >
-                ♟️ Шахматная лига и звания
+                ⚡ Лиги скорости
               </button>
             </div>
 
@@ -626,18 +626,18 @@ export default function ProfilePage() {
             {profileTab === "chess" ? (
               <div className="chess-table-section">
                 <p className="chess-intro">
-                  В Typing Arena AI используется спортивная классификация по шахматной системе Elo.
-                  Участвуйте в дуэлях Буллет (30 с), Блиц (60 с) и Рапид (120 с) на Арене, чтобы
+                  В Typing Arena AI используется спортивная классификация по рейтингу арены.
+                  Участвуйте в дуэлях Импульс (30 с), Турбо (60 с) и Марафон (120 с) на Арене, чтобы
                   повышать звание.
                 </p>
 
                 <div className="chess-ladder-grid">
                   {[
-                    { code: "GM", name: "Гроссмейстер (GM)", elo: "2000+", icon: "👑", color: "#FFD700" },
-                    { code: "IM", name: "Международный мастер (IM)", elo: "1700+", icon: "⭐", color: "#E040FB" },
-                    { code: "FM", name: "Мастер скорости (FM)", elo: "1400+", icon: "⚔️", color: "#00E5FF" },
-                    { code: "CM", name: "Кандидат в мастера (CM)", elo: "1200+", icon: "♟️", color: "#69F0AE" },
-                    { code: "1Р", name: "Любитель 1-го разряда", elo: "1000+", icon: "🎯", color: "#FFD54F" },
+                    { code: "Легенда", name: "Легенда арены", elo: "2000+", icon: "👑", color: "#FFD700" },
+                    { code: "Сверхновая", name: "Сверхновая", elo: "1700+", icon: "⭐", color: "#E040FB" },
+                    { code: "Форсаж", name: "Форсаж", elo: "1400+", icon: "⚔️", color: "#00E5FF" },
+                    { code: "Импульс", name: "Импульс", elo: "1200+", icon: "⚡", color: "#69F0AE" },
+                    { code: "Спринтер", name: "Спринтер", elo: "1000+", icon: "🎯", color: "#FFD54F" },
                     { code: "НОВИЧОК", name: "Начинающий", elo: "0 - 999", icon: "🌱", color: "#90A4AE" },
                   ].map((tier) => {
                     const isCurrent = chessRank.code === tier.code;

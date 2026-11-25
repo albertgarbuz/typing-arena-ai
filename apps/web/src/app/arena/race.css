@@ -1,0 +1,54 @@
+.arena-page-main {
+ background:radial-gradient(ellipse at 84% 0,var(--soft-blue),transparent 52%),var(--bg);
+}
+.arena-hero-banner,.arena-mode-card,.arena-race-box,.match-result-modal {
+ border:1px solid var(--border); background-color:var(--surface);
+ background-image:linear-gradient(115deg,var(--soft-blue),transparent 48%);
+}
+.arena-hero-banner { position:relative; overflow:hidden; isolation:isolate; }
+.arena-hero-banner::after {
+ content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+ background:repeating-linear-gradient(118deg,transparent 0 42px,var(--soft-blue) 43px 44px);
+ mask-image:linear-gradient(to right,transparent,#000);
+}
+.match-room-header,.match-room-title-box,.result-modal-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.65rem; }
+.match-room-header { justify-content:space-between; margin-bottom:1rem; }
+.arena-race-box { border-radius:18px; padding:clamp(16px,3vw,36px); margin-block:1rem; box-shadow:inset 3px 0 var(--mint); }
+.arena-target-text { font:500 clamp(18px,2vw,27px)/1.75 var(--font-mono),monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+.char-pending { color:var(--muted); }
+.char-current { background:var(--blue); color:var(--bg); border-radius:3px; }
+.char-wrong { text-decoration:underline wavy; color:#ff738c; }
+.char-correct { color:var(--mint); }
+.arena-live-input,#duel-input { width:100%; min-height:54px; margin-top:1rem; border-radius:9px; padding:12px 16px; font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--border); caret-color:var(--mint); }
+.arena-live-input:focus,#duel-input:focus { outline:2px solid var(--mint); outline-offset:2px; }
+.race-lane__title-row { flex-wrap:wrap; }
+.race-lane__meta,.race-lane__info { min-width:0; }
+.match-countdown-overlay,.match-searching-overlay { padding:3rem 1rem; text-align:center; }
+.countdown-number { font:800 5rem/1 var(--font-mono),monospace; color:var(--mint); }
+.match-result-modal { position:relative; overflow:hidden; border-radius:20px; padding:clamp(18px,4vw,46px); margin:1rem 0; }
+.result-modal-icon { font-size:2.5rem; }
+.result-stats-row,.result-medal-award-box { display:flex; flex-wrap:wrap; gap:1.2rem; margin:1rem 0; }
+.result-stat-chip { display:grid; }
+.arena-promotion,.award-title { color:var(--mint); font-weight:800; }
+@media (prefers-reduced-motion:no-preference) {
+ .match-result-modal,.arena-promotion,.result-medal-award-box { animation:arena-reveal .55s cubic-bezier(.16,1,.3,1) both; }
+ .result-medal-award-box { animation-delay:.15s; }
+ .match-result-modal::before { content:""; pointer-events:none; position:absolute; inset:0; background:linear-gradient(110deg,transparent 40%,var(--soft-mint) 50%,transparent 60%); animation:arena-sweep 1s ease-out both; }
+ @keyframes arena-reveal { from {opacity:0;transform:translateY(12px) scale(.985)} to {opacity:1;transform:none} }
+ @keyframes arena-sweep { from {transform:translateX(-100%)} to {transform:translateX(100%)} }
+}
+@media(max-width:700px) {
+ .race-lane { grid-template-columns:minmax(0,1fr) auto; }
+ .race-lane__meta { grid-column:1/-1; }
+ .race-lane__track-rail { min-width:0; }
+}
+
+.kinetic-keys {display:flex;justify-content:center;gap:.5rem;margin-bottom:1rem;overflow:hidden;padding:1rem}
+.kinetic-keys i {display:grid;place-items:center;width:2.8rem;aspect-ratio:1;border:1px solid var(--mint);border-bottom-width:3px;border-radius:8px;color:var(--mint);font:600 1.2rem monospace;transform:skewX(-9deg)}
+@media(prefers-reduced-motion:no-preference){
+ .kinetic-keys i {animation:key-launch .95s cubic-bezier(.16,1,.3,1) both}
+ .kinetic-keys i:nth-child(2){animation-delay:70ms}
+ .kinetic-keys i:nth-child(3){animation-delay:140ms}
+ .kinetic-keys i:nth-child(4){animation-delay:210ms}
+ @keyframes key-launch{from{opacity:0;transform:translateX(-120px) skewX(-32deg)}to{opacity:1;transform:skewX(-9deg)}}
+}
