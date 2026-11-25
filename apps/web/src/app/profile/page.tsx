@@ -189,11 +189,11 @@ export default function ProfilePage() {
           </section>
           <section className="campaign-board">
             <h2>Путь Феникса</h2><p>Точность от 90% приносит зачётные знаки. 200 за день открывают тренировочный день. Для рекорда скорости набери хотя бы 20 верных знаков за попытку. Дни можно пропускать.</p>
-            <p><strong>{user.campaign?.days || 0} / 32 дней</strong> · {user.campaign?.characters || 0} знаков · рекорд {user.campaign?.best || 0} зн/мин</p>
+            <p><strong>{user.campaign?.days || 0} зачётных дней</strong> · {user.campaign?.characters || 0} знаков · рекорд {user.campaign?.best || 0} зн/мин</p>
             <div className="campaign-rewards">{CAMPAIGN.map(stage => {
               const owned = user.unlockedAvatars.includes(stage.avatar);
               return <article key={stage.days} data-owned={owned}><span>{stage.avatar}</span><h3>{stage.name}</h3>
-                <small>{stage.days} дн. · {stage.characters.toLocaleString("ru-RU")} знаков{stage.speed > 0 && " · "+stage.speed+" зн/мин"}</small>
+                <small>Регулярность {Math.min(100, Math.floor((user.campaign?.days || 0) / stage.days * 100))}% · {stage.characters.toLocaleString("ru-RU")} знаков{stage.speed > 0 && " · "+stage.speed+" зн/мин"}</small>
                 {owned ? <button className="button button--secondary" disabled={user.avatar === stage.avatar} onClick={() => saveUser({...user, avatar:stage.avatar})}>{user.avatar === stage.avatar ? "Выбран" : "Надеть"}</button> : <strong>Закрыто</strong>}</article>;
             })}</div>
             <button className="button button--secondary" onClick={() => {

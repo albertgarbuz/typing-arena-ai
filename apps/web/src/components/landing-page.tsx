@@ -137,27 +137,22 @@ function HeroSection() {
       <div className="hero__inner layout-container">
         <div className="hero__content">
           <div className="hero__meta">
-            <p className="hero__eyebrow">ТОЧНОСТЬ. РИТМ. СВОБОДА.</p>
-            <p className="stage-badge">
-              <span className="stage-badge__dot" aria-hidden="true" />
-              Этап 1 · знакомство с платформой
-            </p>
+            <p className="hero__eyebrow">Месяц слепой печати</p>
           </div>
 
           <h1 id="hero-title" className="hero__title">
-            <span className="hero__title-line">Печатай быстрее.</span>{" "}
-            <span className="hero__title-line">Думай свободнее.</span>{" "}
-            <span className="hero__title-line hero__title-line--accent">Побеждай сильнейших.</span>
+            <span className="hero__title-line">30 минут в день.</span>{" "}
+            <span className="hero__title-line">Пальцы на клавишах.</span>{" "}
+            <span className="hero__title-line hero__title-line--accent">Взгляд на экране.</span>
           </h1>
 
           <p className="hero__subtitle">
-            Научись слепой десятипальцевой печати с персональным AI-тренером, отслеживай прогресс
-            и соревнуйся с пользователями со всего мира
+            Посвяти месяц слепой печати. Начни с двух клавиш, пройди 100 коротких уроков и попробуй набрать целый текст, глядя только на экран.
           </p>
 
           <div className="hero__actions">
             <Link className="button button--primary" href="/test">
-              <span>Проверить скорость</span>
+              <span>Измерить стартовую скорость</span>
               <IconArrowRight className="button__icon" size={18} />
             </Link>
             <a className="button button--secondary" href="#program">
@@ -172,8 +167,7 @@ function HeroSection() {
           <p className="hero__note">
             <IconInfo className="hero__note-icon" size={18} />
             <span>
-              Интерактивный тренажёр запущен: вы можете пройти тест скорости, тренировать частые слова
-              или начать пошаговый курс обучения ЙЦУКЕН и QWERTY.
+              В первый день запиши скорость и точность. Через месяц повтори тест в той же раскладке и с тем же таймером.
             </span>
           </p>
         </div>
@@ -583,12 +577,11 @@ function ProgramSection() {
               Обучение
             </p>
             <h2 id="program-title" className="section-head__title">
-              Программа из десяти этапов
+              Твой план на 30 занятий
             </h2>
             <p className="section-head__lead">
-              Курс ведёт от правильного положения рук до скоростной печати. Новые клавиши
-              добавляются только тогда, когда прежние уже не требуют взгляда на клавиатуру.
-              Русская и английская программы независимы: прогресс по ним будет считаться отдельно.
+              Выбери одну раскладку. На каждый из десяти уровней отведи три занятия: сначала уроки 1–3,
+              затем 4–6, затем 7–10. Если пальцы ещё ищут клавиши, повтори трудный урок в своём темпе.
             </p>
           </header>
 
@@ -738,8 +731,7 @@ function ProgramSection() {
             <p className="program__progress-note">
               <IconClock className="program__progress-icon" size={18} />
               <span>
-                Прохождение этапов пока не отслеживается: тренажёр и учётные записи ещё
-                не запущены, поэтому здесь нет процентов и отметок о выполнении.
+                На занятие отведи 5 минут для разминки, 20 минут для уроков и 5 минут на слова, в которых чаще ошибаешься.
               </span>
             </p>
           </div>
@@ -1068,72 +1060,13 @@ function MethodologySection() {
 /*  Closing CTA + development scope                                            */
 /* -------------------------------------------------------------------------- */
 
-const SCOPE_NOW = [
-  "Обзор платформы и принципов обучения",
-  "Программа из 10 этапов для RU и EN",
-  "Методика расчёта CPM, WPM и точности",
-  "Тёмная и светлая темы",
-];
-
-const SCOPE_NEXT = [
-  "Тренажёр с упражнениями",
-  "Персональный AI-тренер — этап 5",
-  "Учётная запись и сохранение прогресса",
-  "Онлайн-матчи — этап 6",
-];
-
 function ClosingSection() {
   return (
     <section className="section closing" aria-labelledby="closing-title">
-      <div className="closing__inner layout-container">
-        <div className="closing__cta">
-          <p className="section-head__kicker">С чего начать</p>
-          <h2 id="closing-title" className="closing__title">
-            Начните с карты курса
-          </h2>
-          <p className="closing__text">
-            Посмотрите, из каких этапов складывается путь к слепой печати, и выберите раскладку,
-            с которой начнёте, когда откроется тренажёр.
-          </p>
-          <a className="button button--primary" href="#program">
-            <span>К программе курса</span>
-            <IconArrowRight className="button__icon" size={18} />
-          </a>
-        </div>
-
-        <aside className="dev-note" aria-labelledby="dev-note-title">
-          <h3 id="dev-note-title" className="dev-note__title">
-            Что уже есть и что впереди
-          </h3>
-          <div className="dev-note__columns">
-            <div className="dev-note__column dev-note__column--now">
-              <p className="dev-note__label">Доступно сейчас · этап 1</p>
-              <ul className="dev-note__list">
-                {SCOPE_NOW.map((item) => (
-                  <li key={item} className="dev-note__item">
-                    <IconCheck className="dev-note__icon" size={16} />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="dev-note__column dev-note__column--next">
-              <p className="dev-note__label">В следующих этапах</p>
-              <ul className="dev-note__list">
-                {SCOPE_NEXT.map((item) => (
-                  <li key={item} className="dev-note__item">
-                    <IconClock className="dev-note__icon" size={16} />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <Link href="/roadmap" className="inline-link">
-            <span>Подробный план этапов</span>
-            <IconArrowRight className="inline-link__icon" size={16} />
-          </Link>
-        </aside>
+      <div className="layout-container closing__cta">
+        <h2 id="closing-title" className="closing__title">Кто быстрее напечатает один и тот же текст?</h2>
+        <p className="closing__text">После тренировки отправь другу вызов с арены. Сравните скорость и точность на одинаковой дистанции.</p>
+        <Link className="button button--primary" href="/arena">Вызвать друга <IconArrowRight size={18} /></Link>
       </div>
     </section>
   );

@@ -45,11 +45,16 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
     });
   };
 
-  const totalLessons = 100;
-  const completedTotal = useMemo(() => {
-    return Object.keys(progress).filter((id) => id.startsWith(layout)).length;
-  }, [progress, layout]);
-
+  const lessons = levels.flatMap(level => level.exercises.map(exercise => ({level: level.level, exercise})));
+  const passed = ({exercise}: typeof lessons[number]) =>
+    (progress[exercise.id]?.accuracy ?? 0) >= exercise.minAccuracy;
+  const totalLessons = lessons.length;
+  const completedTotal = lessons.filter(passed).length;
+  const next = lessons.find(item => !passed(item));
+  const index = next ? lessons.indexOf(next) : totalLessons;
+  const within = index % 10;
+  const session = Math.floor(index / 10) * 3 + (within < 3 ? 1 : within < 6 ? 2 : 3);
+  const last = Math.floor(index / 10) * 10 + (within < 3 ? 3 : within < 6 ? 6 : 10);
   const percentTotal = Math.min(100, Math.round((completedTotal / totalLessons) * 100));
 
   return (
@@ -59,8 +64,7 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
         <div>
           <h2 className="course-map__title">Курс слепой печати: 100 уроков</h2>
           <p className="course-map__subtitle">
-            100 пошаговых упражнений от базовой постановки пальцев до норматива 400 CPM на Арене.
-            Проходите каждый урок с точностью от 95%.
+            30 занятий по полчаса. Пять минут разомни пальцы, двадцать посвяти новым урокам, а последние пять — словам, в которых ошибаешься.
           </p>
         </div>
 
@@ -92,13 +96,14 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
       <div className="course-progress-banner">
         <div className="course-progress-banner__info">
           <div className="streak-badge-pill">
-            🔥 Задача на день: пройти минимум 1 урок
+            {next ? `Занятие ${session} из 30 · уроки ${index + 1}–${last}` : "Курс пройден"}
           </div>
           <h3 className="course-progress-title">
             Прогресс курса: {completedTotal} из {totalLessons} уроков ({percentTotal}%)
           </h3>
           <p className="course-progress-desc">
-            Регулярная тренировка каждый день формирует несокрушимую мышечную память.
+            {next ? <Link className="text-link" href={`/learn/${layout}/${next.level}?ex=${next.exercise.id}`}>Продолжить · {next.exercise.title} →</Link>
+              : <Link className="text-link" href="/test">Измерить итоговую скорость →</Link>}
           </p>
         </div>
         <div className="course-progress-bar-wrap">
