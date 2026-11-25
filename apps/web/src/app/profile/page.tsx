@@ -185,6 +185,7 @@ export default function ProfilePage() {
               <Link href="/arena" className="button button--primary">Продолжить на арене</Link>
             </div>
           </section>
+          <p className="profile-transfer"><Link href="/transfer.html">Перенести профиль со старой арены →</Link></p>
           {/* User Hero Header */}
           <div className="profile-hero-card">
             <div className="profile-hero-card__left">

@@ -35,3 +35,12 @@
 .record-reveal span{position:absolute;inset-inline-start:18px;opacity:0;color:var(--mint)}
 @media(prefers-reduced-motion:no-preference){.record-reveal span{animation:record-letters .5s both}.record-reveal strong{display:inline-block;animation:arena-reveal .35s .36s both}@keyframes record-letters{0%{opacity:0;letter-spacing:1em}35%{opacity:.8}100%{opacity:0;letter-spacing:0}}}
 @media(max-width:650px){.profile-performance{grid-template-columns:1fr}}
+
+.profile-transfer {margin:0 0 1.5rem}
+.profile-transfer a {color:var(--mint);text-underline-offset:4px}
+@media(prefers-reduced-motion:no-preference){
+ .route-pulse {position:fixed;z-index:100;inset:0 0 auto;height:4px;pointer-events:none;
+ background:linear-gradient(90deg,transparent 8%,var(--blue) 43%,var(--mint) 69%,transparent 85%);
+ animation:route-traverse .72s cubic-bezier(.25,.72,.25,1) both}
+ @keyframes route-traverse {0%{transform:translateX(-95%);opacity:0}25%{opacity:1}85%{opacity:1}100%{transform:translateX(95%);opacity:0}}
+}

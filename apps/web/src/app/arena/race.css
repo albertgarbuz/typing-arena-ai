@@ -52,3 +52,42 @@
  .kinetic-keys i:nth-child(4){animation-delay:210ms}
  @keyframes key-launch{from{opacity:0;transform:translateX(-120px) skewX(-32deg)}to{opacity:1;transform:skewX(-9deg)}}
 }
+
+/* The lobby's four keyboard lanes carry the selected layout into the race. */
+.arena-shell {max-width:1240px}
+.arena-shell .arena-hero-banner {
+ display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+ padding:clamp(20px,4vw,58px);gap:clamp(18px,3vw,40px);border-radius:24px;
+ overflow:visible;background:radial-gradient(ellipse at 100% 0,var(--soft-mint),transparent 63%),var(--surface);
+}
+.arena-hero-banner::after {border-radius:inherit}
+.arena-hero-banner__text {min-width:0}
+.arena-hero-banner .arena-title {font-size:clamp(32px,4.5vw,64px);line-height:1.08;text-wrap:balance}
+.arena-hero-banner .arena-lead {max-width:60ch}
+.velocity-stage {grid-column:1/-1;grid-row:2;display:grid;gap:5px;padding:12px 0;overflow:hidden;
+ border-block:1px solid var(--border);transform:skewY(-1deg);pointer-events:none}
+.velocity-lane {position:relative;height:19px;color:var(--mint);
+ background:repeating-linear-gradient(90deg,transparent 0 23px,var(--border) 23px 24px) left center/100% 3px no-repeat}
+.velocity-lane:nth-child(even) {color:var(--blue)}
+.velocity-lane i {position:absolute;left:16%;width:30px;text-align:center;border-radius:4px;
+ background:var(--surface);border:1px solid currentColor;font:700 13px/17px monospace;transform:skew(-14deg)}
+.velocity-lane i::before {content:"";position:absolute;right:100%;width:clamp(45px,12vw,150px);height:2px;top:8px;background:linear-gradient(90deg,transparent,currentColor)}
+.velocity-lane:nth-child(2) i {left:41%}
+.velocity-lane:nth-child(3) i {left:58%}
+.velocity-lane:nth-child(4) i {left:76%}
+@media(prefers-reduced-motion:no-preference){
+ .velocity-lane i {animation:velocity-run 4.2s cubic-bezier(.42,0,.28,1) infinite alternate}
+ .velocity-lane:nth-child(2) i {animation-delay:-2s}
+ .velocity-lane:nth-child(3) i {animation-delay:-3.4s}
+ .velocity-lane:nth-child(4) i {animation-delay:-1.4s}
+ @keyframes velocity-run {from{transform:translateX(-8vw) skew(-8deg)}to{transform:translateX(11vw) skew(-19deg)}}
+ .race-lane__bar-fill::before {content:"";position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(115deg,transparent 0 16px,#ffffff22 17px 19px);background-size:42px 100%;animation:rail-flow 1.2s linear infinite}
+ @keyframes rail-flow {to{background-position:42px 0}}
+}
+@media(max-width:760px){
+ .arena-shell .arena-hero-banner {grid-template-columns:minmax(0,1fr)}
+ .velocity-stage {grid-row:2}
+ .arena-hero-banner .arena-rank-card {align-items:flex-start;flex-flow:row wrap}
+ .arena-rank-card__badge,.arena-hero-banner .layout-tabs {max-width:100%}
+ .arena-hero-banner .arena-rank-card__elo {font-size:1rem}
+}

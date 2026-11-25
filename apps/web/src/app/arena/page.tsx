@@ -87,6 +87,11 @@ export default function ArenaLobbyPage() {
               </p>
             </div>
 
+            <div className="velocity-stage" aria-hidden="true">
+              {(layout === "ru" ? ["Й", "Ц", "У", "К"] : ["Q", "W", "E", "R"]).map(letter =>
+                <span className="velocity-lane" key={letter}><i>{letter}</i></span>
+              )}
+            </div>
             {/* User League & Rank Widget */}
             <div className="arena-rank-card">
               <div className="arena-rank-card__badge" style={{ borderColor: chessRank.color }}>
