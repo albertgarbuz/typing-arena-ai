@@ -179,6 +179,41 @@ function HeroSection() {
   );
 }
 
+const heroPhrases = [
+  "Печатай быстрее. Сегодня — точнее, завтра — быстрее. Начни с одной строки.",
+  "Смотри на экран. Нащупай выступы на А и О и попробуй набрать своё имя вслепую.",
+  "Начни медленно. Когда пальцы запомнят слово, набери его ещё раз чуть быстрее.",
+  "Поставь свой первый рекорд. Завтра у тебя будет повод вернуться и улучшить его.",
+  "Вызови друга на заезд. Один текст, два игрока. Кто первым доберётся до финиша?",
+  "Дай рукам полчаса. Разогрей пальцы, пройди урок и оставь пару минут на любимую песню.",
+  "Какое слово ты чаще всего печатаешь с ошибкой? Попробуй написать его здесь.",
+];
+let heroQueue: number[] = [];
+let lastHero = -1;
+function nextHeroPhrase() {
+  const key = "typing-arena-hero-phrases-v1";
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(key) || "null");
+    if (saved && Array.isArray(saved.queue) && saved.queue.length < heroPhrases.length &&
+        saved.queue.every((n:number) => Number.isInteger(n) && n >= 0 && n < heroPhrases.length)) {
+      heroQueue = saved.queue;
+      lastHero = saved.last;
+    }
+  } catch { /* Use the in-memory queue. */ }
+  if (!heroQueue.length) {
+    heroQueue = heroPhrases.map((_, i) => i);
+    for (let i=heroQueue.length-1;i>0;i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [heroQueue[i],heroQueue[j]]=[heroQueue[j],heroQueue[i]];
+    }
+    const end=heroQueue.length-1;
+    if (heroQueue[end]===lastHero) [heroQueue[0],heroQueue[end]]=[heroQueue[end],heroQueue[0]];
+  }
+  lastHero=heroQueue.pop()!;
+  try { sessionStorage.setItem(key,JSON.stringify({queue:heroQueue,last:lastHero})); } catch { /* Session-only fallback. */ }
+  return heroPhrases[lastHero];
+}
+
 function HeroKeyboard() {
   const [typed, setTyped] = useState("");
   const [pressed, setPressed] = useState<KeyDef | null>(null);
@@ -209,8 +244,8 @@ function HeroKeyboard() {
   }
   useEffect(() => {
     const keys = HERO_ROWS.flatMap(row => row.keys).filter(key => !key.mod);
-    const phrase = "Печатай быстрее. Сегодня — точнее, завтра — быстрее. Начни с одной строки.";
     function replay() {
+      const phrase = nextHeroPhrase();
       clearInterval(demo.current);
       clearTimeout(release.current);
       manual.current = false;
