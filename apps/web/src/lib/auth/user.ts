@@ -25,6 +25,7 @@ export interface UserProfile {
   unlockedAvatars: string[];
   unlockedTitles: string[];
   activeTitle: string;
+  campaign?: { days: number; date: string; today: number; characters: number; best: number };
   toys?: string[];
   activeToy?: string;
   dailyAwardDate?: string;
@@ -258,6 +259,31 @@ export const SHOP_TITLES: ShopTitle[] = [
   { title: "Легенда арены", cost: 800, description: "Абсолютный авторитет" },
 ];
 
+export const CAMPAIGN = [
+  { days: 1, characters: 200, speed: 0, avatar: "🦦", name: "Речной разведчик" },
+  { days: 4, characters: 2000, speed: 80, avatar: "🦉", name: "Ночной штурман" },
+  { days: 8, characters: 6000, speed: 120, avatar: "🐆", name: "Спринтер" },
+  { days: 15, characters: 16000, speed: 160, avatar: "🦈", name: "Охотник глубин" },
+  { days: 23, characters: 35000, speed: 200, avatar: "🦄", name: "Спектр" },
+  { days: 32, characters: 64000, speed: 240, avatar: "🐦‍🔥", name: "Феникс арены" },
+];
+export function advanceCampaign(correct: number, accuracy: number, cpm: number) {
+  if (correct < 1 || accuracy < 90) return;
+  const user = getCurrentUser();
+  const day = dailyGoal().day;
+  const prev = user.campaign;
+  const earlier = prev?.date === day ? prev.today : 0;
+  const today = earlier + correct;
+  const days = (prev?.days || 0) + Number(earlier < 200 && today >= 200);
+  const characters = (prev?.characters || 0) + correct;
+  const best = Math.max(prev?.best || 0, correct >= 20 ? cpm : 0);
+  user.campaign = {days, date: day, today, characters, best};
+  for (const stage of CAMPAIGN) {
+    if (days >= stage.days && characters >= stage.characters && best >= stage.speed &&
+        !user.unlockedAvatars.includes(stage.avatar)) user.unlockedAvatars.push(stage.avatar);
+  }
+  saveUser(user);
+}
 export const TOYS = [
   { id: "satellite", icon: "🛰️", name: "Орбитальный спутник", cost: 60 },
   { id: "robot", icon: "🤖", name: "Робот-барабанщик", cost: 180 },

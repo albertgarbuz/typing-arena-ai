@@ -16,7 +16,7 @@ import {
   loginWithGoogle,
   logoutUser,
   saveUser,
-  dailyGoal, earnedTitles, selectToy, TOYS, SPEED_TITLES,
+  CAMPAIGN, dailyGoal, earnedTitles, selectToy, TOYS, SPEED_TITLES,
   SHOP_AVATARS,
   SHOP_TITLES,
   subscribeUser,
@@ -50,6 +50,7 @@ export default function ProfilePage() {
     }
   }, [userRaw]);
 
+  const [cardLink,setCardLink] = useState("");
   const goal = dailyGoal();
   const toy = TOYS.find(item => item.id === user.activeToy);
   const [play, setPlay] = useState(0);
@@ -185,6 +186,26 @@ export default function ProfilePage() {
               <p>За одну попытку напечатай {goal.letters} верных знаков с точностью от 90%.</p>
             </div>
             <Link href="/test" className="button button--primary">Начать заезд →</Link>
+          </section>
+          <section className="campaign-board">
+            <h2>Путь Феникса</h2><p>Точность от 90% приносит зачётные знаки. 200 за день открывают тренировочный день. Для рекорда скорости набери хотя бы 20 верных знаков за попытку. Дни можно пропускать.</p>
+            <p><strong>{user.campaign?.days || 0} / 32 дней</strong> · {user.campaign?.characters || 0} знаков · рекорд {user.campaign?.best || 0} зн/мин</p>
+            <div className="campaign-rewards">{CAMPAIGN.map(stage => {
+              const owned = user.unlockedAvatars.includes(stage.avatar);
+              return <article key={stage.days} data-owned={owned}><span>{stage.avatar}</span><h3>{stage.name}</h3>
+                <small>{stage.days} дн. · {stage.characters.toLocaleString("ru-RU")} знаков{stage.speed > 0 && " · "+stage.speed+" зн/мин"}</small>
+                {owned ? <button className="button button--secondary" disabled={user.avatar === stage.avatar} onClick={() => saveUser({...user, avatar:stage.avatar})}>{user.avatar === stage.avatar ? "Выбран" : "Надеть"}</button> : <strong>Закрыто</strong>}</article>;
+            })}</div>
+            <button className="button button--secondary" onClick={() => {
+              const url = new URL("../card/",window.location.href);
+              const data = {n:user.nickname,a:user.avatar,l:user.level,t:user.activeTitle,m:user.medals,
+                r:user.unlockedAvatars.filter(av=>CAMPAIGN.some(s=>s.avatar===av)),d:user.campaign?.days || 0,
+                h:user.achievements};
+              url.hash = encodeURIComponent(JSON.stringify(data));
+              setCardLink(url.href);
+              navigator.clipboard?.writeText(url.href).catch(()=>{});
+            }}>Поделиться уровнем и наградами</button>
+            {cardLink && <label className="card-copy">Ссылка на карточку с текущими наградами<input readOnly value={cardLink} onFocus={e=>e.target.select()} /><a href={cardLink}>Посмотреть карточку ↗</a></label>}
           </section>
           {toy && <button type="button" className="toy-display" onClick={() => setPlay(value => value+1)}>
             <span key={play} className={play ? "toy-motion toy-"+toy.id : ""}>{toy.icon}</span> Играть · {toy.name}
@@ -577,7 +598,7 @@ export default function ProfilePage() {
                       {selected ? "В профиле" : owned ? "В профиль" : item.cost+" монет"}</button></div>;
                 })}</div>
                 <div className="shop-header">
-                  <h3>Эксклюзивные аватары</h3>
+                  <h3>Аватары за монеты</h3>
                   <span className="shop-balance">Ваш баланс: {user.coins} 🪙 монет</span>
                 </div>
                 <div className="shop-items-grid">

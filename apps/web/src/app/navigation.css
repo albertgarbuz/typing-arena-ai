@@ -78,3 +78,25 @@
  @keyframes toy-beat{to{transform:rotate(-20deg) translateY(-5px)}}
  @keyframes toy-dash{50%{transform:translate(25px,-15px) scale(.7)}}
 }
+
+.studio-shot {position:relative;overflow:hidden;isolation:isolate;border-radius:13px;margin-bottom:16px;background:#292831}
+.studio-shot img {display:block;width:100%;height:auto}
+.studio-shot .studio-hand {position:absolute;inset:0;transition:transform .13s ease-out}
+.studio-left {mask-image:radial-gradient(ellipse at 25% 70%,black 16%,transparent 42%)}
+.studio-right {mask-image:radial-gradient(ellipse at 77% 72%,black 17%,transparent 42%)}
+@media(prefers-reduced-motion:no-preference){
+ .studio-shot[data-strike=left] .studio-left,.studio-shot[data-strike=right] .studio-right {transform:translateY(3px) scale(.995)}
+}
+.hero__actions .button,.campaign-board .button,.daily-quest .button,.shop-section .button {border-radius:13px;box-shadow:inset 0 1px 0 #ffffff24,0 3px 8px #0002}
+.hero__actions .button--primary,.daily-quest .button--primary {color:white;background:linear-gradient(180deg,#2776ea,#1757c3)}
+.campaign-board {padding:clamp(18px,3vw,36px);border:1px solid var(--border);border-radius:20px;background:var(--surface);margin-block:1rem}
+.campaign-board>p {margin:.8rem 0;color:var(--muted)}
+.campaign-rewards {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px;margin:20px 0}
+.campaign-rewards article {display:grid;gap:8px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
+.campaign-rewards article>span {font-size:2rem}
+.campaign-rewards article[data-owned=false]>span {filter:grayscale(.75)}
+.campaign-rewards article[data-owned=true] {border-color:var(--mint)}
+.campaign-rewards small,.campaign-rewards strong {font-size:.8rem}
+.card-copy {display:grid;gap:.5rem;margin-top:1rem}
+.card-copy input {width:100%;padding:.6rem}
+.public-card {max-width:860px;padding-block:7vh}

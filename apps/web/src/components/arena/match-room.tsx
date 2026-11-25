@@ -17,7 +17,7 @@ import {
   addXpAndCoins,
   awardMedal,
   getCurrentUser,
-  unlockAchievement, earnDailyReward, SPEED_TITLES,
+  unlockAchievement, advanceCampaign, earnDailyReward, SPEED_TITLES,
   updateUserRating,
 } from "@/lib/auth/user";
 import type { Layout } from "@/lib/typing/types";
@@ -167,6 +167,7 @@ export function MatchRoom({
         updateUserRating(layout, delta, isWin, "1v1");
       }
 
+      advanceCampaign(correct, finalAccuracy, finalCpm);
       setDailyWon(earnDailyReward(correct, finalAccuracy));
       if (correct > 0) for (const code of Object.keys(SPEED_TITLES)) {
         if (finalCpm >= Number(code.slice(6))) unlockAchievement(code);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import studio from "./keyboard-studio.jpg";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import {
@@ -254,6 +255,10 @@ function HeroKeyboard() {
   return (
     <figure className="hero-visual" ref={frame}>
       <div className="hero-visual__frame">
+        <div className="studio-shot" data-strike={pressed?.hand} aria-hidden="true">
+          <img className="studio-base" src={studio.src} alt="" width={960} height={412} />
+          {["left","right"].map(side => <img key={side} className={"studio-hand studio-"+side} src={studio.src} alt="" />)}
+        </div>
         <div className="hero-visual__topbar" aria-hidden="true">
           <span className="hero-visual__layout">ЙЦУКЕН</span>
           <span className="hero-visual__hint">основной ряд · опора на А и О</span>

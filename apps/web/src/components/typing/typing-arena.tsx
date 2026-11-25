@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { calculateTypingMetrics } from "@/lib/typing/engine";
 import { saveResult } from "@/lib/typing/storage";
-import { earnDailyReward, addXpAndCoins, awardMedal, unlockAchievement } from "@/lib/auth/user";
+import { advanceCampaign, earnDailyReward, addXpAndCoins, awardMedal, unlockAchievement } from "@/lib/auth/user";
 import type { Layout, TestDuration, TypingResult } from "@/lib/typing/types";
 import { VirtualKeyboard } from "./virtual-keyboard";
 import { ResultCard } from "./result-card";
@@ -123,6 +123,7 @@ export function TypingArena({
 
     setResult(fullResult);
     saveResult(fullResult);
+    advanceCampaign(fullResult.c, fullResult.accuracy, fullResult.cpm);
     setDailyReward(earnDailyReward(fullResult.c, fullResult.accuracy));
 
     // Gamification rewards and achievements
