@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { flyLetter } from "@/lib/typing/letter-flight";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import {
@@ -185,40 +186,30 @@ function HeroKeyboard() {
   const release = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const manual = useRef(false);
   const frame = useRef<HTMLElement>(null);
+  const editor = useRef<HTMLTextAreaElement>(null);
   function strike(key: KeyDef) {
     const cap = frame.current?.querySelector<HTMLButtonElement>(`[data-letter="${key.label}"]`);
-    const display = frame.current?.querySelector(".typing-display");
-    if (cap && display && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const start = cap.getBoundingClientRect();
-      const target = display.getBoundingClientRect();
-      const dx = target.left + target.width * .72 - start.left - start.width / 2;
-      const dy = target.top + target.height / 2 - start.top - start.height / 2;
-      const glyph = document.createElement("i");
-      glyph.className = "flying-letter";
-      glyph.textContent = key.space ? "␣" : key.label;
-      glyph.setAttribute("aria-hidden", "true");
-      cap.appendChild(glyph);
-      const flight = glyph.animate([
-        { transform:"translate(-50%, -50%) scale(.8)", opacity:0 },
-        { transform:`translate(calc(-50% + ${dx*.22}px), calc(-50% + ${dy*.55}px)) skew(-12deg)`, opacity:1, offset:.4 },
-        { transform:`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.75)`, opacity:0 }
-      ], {duration:470, easing:"ease-out"});
-      flight.onfinish = () => glyph.remove();
-    }
+    flyLetter(cap ?? null, editor.current, key.space ? " " : key.label);
     clearTimeout(release.current);
     setPressed(key);
     release.current = setTimeout(() => setPressed(null), 150);
   }
   function playKey(key: KeyDef) {
     clearInterval(demo.current);
-    const append = manual.current;
-    setTyped(previous => ((append ? previous : "") + (key.space ? " " : key.label)).slice(-24));
+    const field = editor.current;
+    if (!field) return;
+    const start = manual.current ? field.selectionStart : 0;
+    const end = manual.current ? field.selectionEnd : field.value.length;
+    const value = key.space ? " " : key.label;
+    setTyped(field.value.slice(0,start) + value + field.value.slice(end));
     manual.current = true;
+    field.focus({preventScroll:true});
+    requestAnimationFrame(() => field.setSelectionRange(start+value.length,start+value.length));
     strike(key);
   }
   useEffect(() => {
     const keys = HERO_ROWS.flatMap(row => row.keys).filter(key => !key.mod);
-    const phrase = "АРЕНА ПЕЧАТИ";
+    const phrase = "Печатай быстрее. Сегодня — точнее, завтра — быстрее. Начни с одной строки.";
     function replay() {
       clearInterval(demo.current);
       clearTimeout(release.current);
@@ -232,11 +223,11 @@ function HeroKeyboard() {
       let position = 0;
       demo.current = setInterval(() => {
         const letter = phrase[position++];
-        const key = keys.find(item => item.label === (letter === " " ? "пробел" : letter));
+        const key = keys.find(item => item.label === (letter === " " ? "пробел" : letter.toUpperCase()));
         if (key) strike(key);
         setTyped(phrase.slice(0, position));
         if (position === phrase.length) clearInterval(demo.current);
-      }, 205);
+      }, 82);
     }
     function onKey(event: KeyboardEvent) {
       if (event.defaultPrevented || event.isComposing || event.metaKey || event.ctrlKey || event.altKey ||
@@ -272,7 +263,15 @@ function HeroKeyboard() {
           <span className="hero-visual__hint">основной ряд · опора на А и О</span>
         </div>
 
-        <div className="typing-display" aria-label="Набранный текст">{typed}<i aria-hidden="true" /></div>
+        <textarea className="typing-display" ref={editor} aria-label="Текст для свободной печати" rows={3}
+          value={typed} placeholder="Напечатай свою строку…" spellCheck={false}
+          onFocus={() => {clearInterval(demo.current); manual.current = true;}}
+          onChange={event => {
+            setTyped(event.target.value);
+            const input = event.nativeEvent as InputEvent;
+            const key = HERO_ROWS.flatMap(row=>row.keys).find(item=>item.label === (input.data === " " ? "пробел" : input.data?.toUpperCase()));
+            if (key) strike(key);
+          }} />
         <div className="keyboard keyboard--hero" aria-label="Русская клавиатура">
           {HERO_ROWS.map((row) => (
             <div key={row.id} className={`keyboard__row keyboard__row--${row.id}`}>
@@ -316,8 +315,9 @@ function HeroKeyboard() {
       </div>
 
       <figcaption className="hero-visual__caption">
-        <span className="hero-visual__caption-title">Попробуй напечатать своё имя</span>
-        <span className="hero-visual__caption-text">Печатай в русской раскладке или нажимай клавиши на экране. Подсветка покажет, каким пальцем нажимать.</span>
+        <span className="hero-visual__caption-title">Напечатай свою строку</span>
+        <span className="hero-visual__caption-text">Нажми на текст, чтобы изменить его, или набирай экранными клавишами.</span>
+        <Link className="button button--secondary" href="/test">Проверить скорость →</Link>
       </figcaption>
     </figure>
   );

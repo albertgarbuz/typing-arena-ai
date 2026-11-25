@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { calculateTypingMetrics } from "@/lib/typing/engine";
+import { flyLetter } from "@/lib/typing/letter-flight";
 import { saveResult } from "@/lib/typing/storage";
 import { advanceCampaign, earnDailyReward, addXpAndCoins, awardMedal, unlockAchievement } from "@/lib/auth/user";
 import type { Layout, TestDuration, TypingResult } from "@/lib/typing/types";
@@ -214,6 +215,12 @@ export function TypingArena({
     }
 
     e.preventDefault();
+
+    if (mode === "test" && showKeyboard) {
+      const arena = e.currentTarget.closest(".typing-arena");
+      const key = arena?.querySelector<HTMLElement>(`[data-code="${CSS.escape(e.code)}"]`);
+      flyLetter(key ?? null, arena?.querySelector(".arena-char--current") ?? null, e.key);
+    }
 
     // Start timer on first keystroke
     if (!isStarted) {

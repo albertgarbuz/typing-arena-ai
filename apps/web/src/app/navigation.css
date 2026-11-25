@@ -108,3 +108,8 @@
  @keyframes landing-line {from{transform:scaleX(0)}to{transform:scaleX(1)}}
  @keyframes landing-lap {0%{left:0;opacity:0}25%{opacity:1}100%{left:82%;opacity:0}}
 }
+
+textarea.typing-display {display:block;width:100%;height:5.2em;resize:vertical;white-space:pre-wrap;line-height:1.4;padding:.4em .6em;border:1px solid var(--border);color:var(--mint);caret-color:var(--mint)}
+textarea.typing-display:focus-visible {outline:2px solid var(--mint);outline-offset:2px}
+.hero-visual__caption .button {align-self:flex-start;margin-top:.6rem}
+body>.flying-letter {color:var(--mint)}
