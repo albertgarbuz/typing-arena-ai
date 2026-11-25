@@ -24,6 +24,7 @@ export const MAIN_NAV_ROUTES: NavRoute[] = [
   { href: "/learn", label: "Обучение" },
   { href: "/test", label: "Тест скорости" },
   { href: "/arena", label: "Арена" },
+  { href: "/players", label: "Игроки" },
   { href: "/stats", label: "Статистика" },
   { href: "/methodology", label: "Методика" },
 ];
