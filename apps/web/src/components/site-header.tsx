@@ -81,7 +81,13 @@ export function SiteHeader() {
     <header className={menuOpen ? "site-header site-header--menu-open" : "site-header"}>
       <div className="site-header__inner layout-container">
         {/* Brand Logo */}
-        <Link href="/" className="brand" onClick={closeMenu}>
+        <Link href="/" className="brand" onClick={event => {
+          closeMenu();
+          if (!currentPath && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+            window.dispatchEvent(new Event("typing-arena:replay"));
+            window.scrollTo(0, 0);
+          }
+        }}>
           <span className="brand__mark" aria-hidden="true">
             TA
           </span>

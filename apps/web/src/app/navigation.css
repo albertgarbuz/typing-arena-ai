@@ -44,3 +44,23 @@
  animation:route-traverse .72s cubic-bezier(.25,.72,.25,1) both}
  @keyframes route-traverse {0%{transform:translateX(-95%);opacity:0}25%{opacity:1}85%{opacity:1}100%{transform:translateX(95%);opacity:0}}
 }
+
+.typing-display {
+ display:flex;align-items:center;min-height:2.5em;margin:0 0 1rem;padding:0 .55rem;
+ border-bottom:1px solid var(--border);color:var(--mint);white-space:pre;
+ font:600 clamp(13px,1.6vw,20px)/1.4 monospace;
+}
+.typing-display i {height:1em;width:2px;background:currentColor;margin-left:.15em}
+.keyboard--hero button.keycap {cursor:pointer;padding:0}
+.keyboard--hero .keycap[data-pressed="true"] {background:var(--key-color);color:var(--bg);border-color:var(--key-color);box-shadow:0 0 14px color-mix(in srgb,var(--key-color) 38%,transparent)}
+.finger-map[data-hand="left"] .finger-map__hand--left,.finger-map[data-hand="right"] .finger-map__hand--right,.finger-map[data-hand="both"] .finger-map__hand--right {--finger-fill:currentColor;--finger-lift:-7px}
+.finger-map[data-finger="pinky"] .finger-map__finger--pinky,
+.finger-map[data-finger="ring"] .finger-map__finger--ring,
+.finger-map[data-finger="middle"] .finger-map__finger--middle,
+.finger-map[data-finger="index"] .finger-map__finger--index,
+.finger-map[data-finger="thumb"] .finger-map__finger--thumb {background:var(--finger-fill,color-mix(in srgb,currentColor 9%,transparent));translate:0 var(--finger-lift,0)}
+@media(prefers-reduced-motion:no-preference){
+ .keyboard--hero .keycap,.finger-map__finger {transition:translate 90ms,background 90ms}
+ .keyboard--hero .keycap[data-pressed="true"] {translate:0 2px}
+}
+@media(prefers-reduced-motion:reduce){.finger-map__finger {translate:none!important}}

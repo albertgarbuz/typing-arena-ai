@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import {
   IconArrowDown,
@@ -185,25 +185,94 @@ function HeroSection() {
 }
 
 function HeroKeyboard() {
+  const [typed, setTyped] = useState("");
+  const [pressed, setPressed] = useState<KeyDef | null>(null);
+  const demo = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const release = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const manual = useRef(false);
+  const frame = useRef<HTMLElement>(null);
+  function strike(key: KeyDef) {
+    clearTimeout(release.current);
+    setPressed(key);
+    release.current = setTimeout(() => setPressed(null), 150);
+  }
+  function playKey(key: KeyDef) {
+    clearInterval(demo.current);
+    const append = manual.current;
+    setTyped(previous => ((append ? previous : "") + (key.space ? " " : key.label)).slice(-24));
+    manual.current = true;
+    strike(key);
+  }
+  useEffect(() => {
+    const keys = HERO_ROWS.flatMap(row => row.keys).filter(key => !key.mod);
+    const phrase = "АРЕНА ПЕЧАТИ";
+    function replay() {
+      clearInterval(demo.current);
+      clearTimeout(release.current);
+      manual.current = false;
+      setPressed(null);
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setTyped(phrase);
+        return;
+      }
+      setTyped("");
+      let position = 0;
+      demo.current = setInterval(() => {
+        const letter = phrase[position++];
+        const key = keys.find(item => item.label === (letter === " " ? "пробел" : letter));
+        if (key) strike(key);
+        setTyped(phrase.slice(0, position));
+        if (position === phrase.length) clearInterval(demo.current);
+      }, 205);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.defaultPrevented || event.isComposing || event.metaKey || event.ctrlKey || event.altKey ||
+          (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]"))) return;
+      const bounds = frame.current?.getBoundingClientRect();
+      if (!bounds || bounds.bottom < 0 || bounds.top > window.innerHeight) return;
+      if (event.key === " " && event.target instanceof Element && event.target.closest("button,a")) return;
+      const key = keys.find(item => item.label === (event.key === " " ? "пробел" : event.key.toUpperCase()));
+      if (key) playKey(key);
+    }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        observer.disconnect();
+        if (!manual.current) replay();
+      }
+    });
+    if (frame.current) observer.observe(frame.current);
+    window.addEventListener("typing-arena:replay", replay);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      clearInterval(demo.current);
+      clearTimeout(release.current);
+      observer.disconnect();
+      window.removeEventListener("typing-arena:replay", replay);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
   return (
-    <figure className="hero-visual">
+    <figure className="hero-visual" ref={frame}>
       <div className="hero-visual__frame">
         <div className="hero-visual__topbar" aria-hidden="true">
           <span className="hero-visual__layout">ЙЦУКЕН</span>
           <span className="hero-visual__hint">основной ряд · опора на А и О</span>
         </div>
 
-        <div className="keyboard keyboard--hero" aria-hidden="true">
+        <div className="typing-display" aria-label="Набранный текст">{typed}<i aria-hidden="true" /></div>
+        <div className="keyboard keyboard--hero" aria-label="Русская клавиатура">
           {HERO_ROWS.map((row) => (
             <div key={row.id} className={`keyboard__row keyboard__row--${row.id}`}>
               {row.keys.map((keyDef, index) => (
-                <Keycap key={`${row.id}-${index}`} keyDef={keyDef} />
+                keyDef.mod ? <Keycap key={index} keyDef={keyDef} /> :
+                <button key={index} type="button" className={keycapClassName(keyDef)} data-pressed={pressed === keyDef}
+                  onClick={() => playKey(keyDef)}>{keyDef.label}</button>
               ))}
             </div>
           ))}
         </div>
 
-        <div className="finger-map" aria-hidden="true">
+        <div className="finger-map" aria-hidden="true" data-hand={pressed?.hand} data-finger={pressed?.finger}>
           <div className="finger-map__hand finger-map__hand--left">
             {HOME_LEFT_FINGERS.map((finger) => (
               <span key={finger} className={`finger-map__finger finger-map__finger--${finger}`} />
@@ -234,14 +303,8 @@ function HeroKeyboard() {
       </div>
 
       <figcaption className="hero-visual__caption">
-        <span className="hero-visual__caption-title">Положение пальцев · иллюстрация</span>
-        <span className="hero-visual__caption-text">
-          Цвет показывает зону пальца. Выступы на А и О помогают вслепую вернуться на основной ряд.
-        </span>
-        <span className="sr-only">
-          Схема клавиатуры ЙЦУКЕН — это иллюстрация, а не тренажёр. Левая рука лежит на клавишах
-          Ф, Ы, В, А, правая — на О, Л, Д, Ж, большие пальцы — на пробеле.
-        </span>
+        <span className="hero-visual__caption-title">Попробуй напечатать своё имя</span>
+        <span className="hero-visual__caption-text">Печатай в русской раскладке или нажимай клавиши на экране. Подсветка покажет, каким пальцем нажимать.</span>
       </figcaption>
     </figure>
   );
