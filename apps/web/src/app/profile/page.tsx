@@ -16,6 +16,7 @@ import {
   loginWithGoogle,
   logoutUser,
   saveUser,
+  dailyGoal, earnedTitles, selectToy, TOYS, SPEED_TITLES,
   SHOP_AVATARS,
   SHOP_TITLES,
   subscribeUser,
@@ -39,9 +40,7 @@ export default function ProfilePage() {
         unlockedAvatars: Array.isArray(parsed?.unlockedAvatars)
           ? parsed.unlockedAvatars
           : def.unlockedAvatars,
-        unlockedTitles: Array.isArray(parsed?.unlockedTitles)
-          ? parsed.unlockedTitles
-          : def.unlockedTitles,
+        unlockedTitles: earnedTitles(parsed, def.unlockedTitles),
         achievements: Array.isArray(parsed?.achievements)
           ? parsed.achievements
           : def.achievements,
@@ -50,6 +49,10 @@ export default function ProfilePage() {
       return getDefaultUser();
     }
   }, [userRaw]);
+
+  const goal = dailyGoal();
+  const toy = TOYS.find(item => item.id === user.activeToy);
+  const [play, setPlay] = useState(0);
 
   // Editing state
   const [isEditing, setIsEditing] = useState(false);
@@ -176,6 +179,16 @@ export default function ProfilePage() {
             </div>
           ) : null}
 
+          <section className="daily-quest">
+            <div><span className="eyebrow">Задание дня · 30 монет</span>
+              <h2>{user.dailyAwardDate === goal.day ? "Сегодняшняя награда получена" : "Точный заезд"}</h2>
+              <p>За одну попытку напечатай {goal.letters} верных знаков с точностью от 90%.</p>
+            </div>
+            <Link href="/test" className="button button--primary">Начать заезд →</Link>
+          </section>
+          {toy && <button type="button" className="toy-display" onClick={() => setPlay(value => value+1)}>
+            <span key={play} className={play ? "toy-motion toy-"+toy.id : ""}>{toy.icon}</span> Играть · {toy.name}
+          </button>}
           <section className="profile-performance">
             <div><small>Личный рекорд · Русская арена</small><h2>{best || "—"} <small>знаков/мин</small></h2>
               {lastDelta !== null && <p>Последний заезд: {lastDelta > 0 ? "+" : ""}{lastDelta} знаков/мин к предыдущему</p>}
@@ -536,6 +549,7 @@ export default function ProfilePage() {
                           </span>
                         </div>
                         <p className="achievement-desc">{ach.description}</p>
+                        {SPEED_TITLES[ach.code] && <strong>Титул «{SPEED_TITLES[ach.code]}»</strong>}
                         {isUnlocked ? (
                           <span className="achievement-status-done">
                             <IconCheck size={12} /> Разблокировано
@@ -553,6 +567,15 @@ export default function ProfilePage() {
             {/* Tab 2: Shop */}
             {profileTab === "shop" ? (
               <div className="shop-section">
+                <h3>Коллекционные игрушки</h3>
+                <div className="shop-items-grid">{TOYS.map(item => {
+                  const owned = user.toys?.includes(item.id);
+                  const selected = user.activeToy === item.id;
+                  return <div className="shop-item-card" key={item.id}><span className="shop-item-icon">{item.icon}</span>
+                    <h4>{item.name}</h4><button className="button button--secondary" type="button"
+                      disabled={selected || (!owned && user.coins < item.cost)} onClick={() => selectToy(item.id)}>
+                      {selected ? "В профиле" : owned ? "В профиль" : item.cost+" монет"}</button></div>;
+                })}</div>
                 <div className="shop-header">
                   <h3>Эксклюзивные аватары</h3>
                   <span className="shop-balance">Ваш баланс: {user.coins} 🪙 монет</span>

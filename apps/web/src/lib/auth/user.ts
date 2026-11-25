@@ -25,6 +25,9 @@ export interface UserProfile {
   unlockedAvatars: string[];
   unlockedTitles: string[];
   activeTitle: string;
+  toys?: string[];
+  activeToy?: string;
+  dailyAwardDate?: string;
   streakDays: number;
   lastActiveDate: string;
   totalMatches: number;
@@ -229,6 +232,9 @@ export interface ShopAvatar {
 export const SHOP_AVATARS: ShopAvatar[] = [
   { avatar: "🦊", name: "Лис-пилот", cost: 0, description: "Базовый аватар клавогонщика" },
   { avatar: "🦅", name: "Сокол", cost: 0, description: "Стремительный и зоркий" },
+  { avatar: "🦝", name: "Ночной пилот", cost: 90, description: "Тихий старт под светом фонарей" },
+  { avatar: "🪼", name: "Неоновая медуза", cost: 220, description: "Светится в глубине трека" },
+  { avatar: "🧑‍🚀", name: "Орбитальный гонщик", cost: 360, description: "Покоряет космические дистанции" },
   { avatar: "🥷", name: "Ниндзя", cost: 100, description: "Бесшумные и точные удары" },
   { avatar: "🏎️", name: "Болид F1", cost: 150, description: "Чистая скорость на треке" },
   { avatar: "⚡", name: "Молния", cost: 200, description: "Энергия каждого нажатия" },
@@ -251,6 +257,42 @@ export const SHOP_TITLES: ShopTitle[] = [
   { title: "Гроза Арены", cost: 400, description: "Непобедимый дуэлянт" },
   { title: "Легенда арены", cost: 800, description: "Абсолютный авторитет" },
 ];
+
+export const TOYS = [
+  { id: "satellite", icon: "🛰️", name: "Орбитальный спутник", cost: 60 },
+  { id: "robot", icon: "🤖", name: "Робот-барабанщик", cost: 180 },
+  { id: "comet", icon: "☄️", name: "Карманная комета", cost: 320 },
+];
+export const SPEED_TITLES: Record<string, string> = {
+  speed_200: "Пилот импульса", speed_300: "Звуковой гонщик", speed_400: "Сверхзвук"
+};
+export function dailyGoal(now = new Date()) {
+  const day = [now.getFullYear(), String(now.getMonth()+1).padStart(2,"0"), String(now.getDate()).padStart(2,"0")].join("-");
+  const letters = [12, 16, 20][Math.floor(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()) / 86400000) % 3];
+  return { day, letters };
+}
+export function earnDailyReward(correct: number, accuracy: number) {
+  const goal = dailyGoal();
+  const user = getCurrentUser();
+  if (correct < goal.letters || accuracy < 90 || user.dailyAwardDate === goal.day) return false;
+  user.dailyAwardDate = goal.day;
+  user.coins += 30;
+  saveUser(user);
+  return true;
+}
+export function selectToy(id: string) {
+  const item = TOYS.find(toy => toy.id === id);
+  if (!item) return;
+  const user = getCurrentUser();
+  const owned = user.toys || [];
+  if (!owned.includes(id)) {
+    if (user.coins < item.cost) return;
+    user.coins -= item.cost;
+    user.toys = [...owned, id];
+  }
+  user.activeToy = id;
+  saveUser(user);
+}
 
 const USER_STORAGE_KEY = "typing-arena-current-user";
 const listeners = new Set<() => void>();
@@ -345,9 +387,7 @@ export function getCurrentUser(): UserProfile {
       unlockedAvatars: Array.isArray(parsed?.unlockedAvatars)
         ? parsed.unlockedAvatars
         : def.unlockedAvatars,
-      unlockedTitles: Array.isArray(parsed?.unlockedTitles)
-        ? parsed.unlockedTitles
-        : def.unlockedTitles,
+      unlockedTitles: earnedTitles(parsed, def.unlockedTitles),
       achievements: Array.isArray(parsed?.achievements)
         ? parsed.achievements
         : def.achievements,
@@ -417,6 +457,8 @@ export function unlockAchievement(code: string): boolean {
 
   const ach = ACHIEVEMENTS_LIST.find((a) => a.code === code);
   user.achievements.push(code);
+  const title = SPEED_TITLES[code];
+  if (title && !user.unlockedTitles.includes(title)) user.unlockedTitles.push(title);
   if (ach) {
     user.xp += ach.xpReward;
     user.coins += ach.coinReward;
@@ -541,4 +583,9 @@ export function logoutUser(): UserProfile {
   def.authProvider = "guest";
   saveUser(def);
   return def;
+}
+
+export function earnedTitles(profile: Partial<UserProfile>, fallback: string[]) {
+  return [...new Set([...(Array.isArray(profile.unlockedTitles) ? profile.unlockedTitles : fallback),
+    ...Object.entries(SPEED_TITLES).filter(([code]) => profile.achievements?.includes(code)).map(([,title]) => title)])];
 }

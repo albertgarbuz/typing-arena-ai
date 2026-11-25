@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { calculateTypingMetrics } from "@/lib/typing/engine";
 import { saveResult } from "@/lib/typing/storage";
-import { addXpAndCoins, awardMedal, unlockAchievement } from "@/lib/auth/user";
+import { earnDailyReward, addXpAndCoins, awardMedal, unlockAchievement } from "@/lib/auth/user";
 import type { Layout, TestDuration, TypingResult } from "@/lib/typing/types";
 import { VirtualKeyboard } from "./virtual-keyboard";
 import { ResultCard } from "./result-card";
@@ -48,6 +48,7 @@ export function TypingArena({
   const [pressedCode, setPressedCode] = useState<string | undefined>(undefined);
   const [liveCpm, setLiveCpm] = useState(0);
 
+  const [dailyReward, setDailyReward] = useState(false);
   const [result, setResult] = useState<TypingResult | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -122,6 +123,7 @@ export function TypingArena({
 
     setResult(fullResult);
     saveResult(fullResult);
+    setDailyReward(earnDailyReward(fullResult.c, fullResult.accuracy));
 
     // Gamification rewards and achievements
     addXpAndCoins(25, 10);
@@ -382,6 +384,8 @@ export function TypingArena({
         </div>
       ) : (
         result && (
+          <>
+          {dailyReward && <p className="quest-award" role="status">✦ Задание дня выполнено · +30 монет</p>}
           <ResultCard
             result={result}
             onRestart={() => resetSession()}
@@ -394,6 +398,7 @@ export function TypingArena({
                 : undefined
             }
           />
+          </>
         )
       )}
 

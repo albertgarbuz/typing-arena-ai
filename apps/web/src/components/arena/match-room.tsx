@@ -17,7 +17,7 @@ import {
   addXpAndCoins,
   awardMedal,
   getCurrentUser,
-  unlockAchievement,
+  unlockAchievement, earnDailyReward, SPEED_TITLES,
   updateUserRating,
 } from "@/lib/auth/user";
 import type { Layout } from "@/lib/typing/types";
@@ -47,6 +47,7 @@ export function MatchRoom({
   const [currentUser, setCurrentUser] = useState(getCurrentUser);
   const settled = useRef(false);
   const [recordGain, setRecordGain] = useState(0);
+  const [dailyWon, setDailyWon] = useState(false);
   const [promotion, setPromotion] = useState("");
   const playerRating = layout === "ru" ? currentUser.ratingRu : currentUser.ratingEn;
 
@@ -122,7 +123,7 @@ export function MatchRoom({
 
   // 3. Finish Match handler
   const handleFinishMatch = useCallback(
-    (isWin: boolean, finalCpm = player.cpm, finalAccuracy = player.accuracy) => {
+    (isWin: boolean, finalCpm = player.cpm, finalAccuracy = player.accuracy, correct = Math.round(player.progressPercent * raceText.length / 100)) => {
       if (settled.current) return;
       settled.current = true;
       if (botIntervalRef.current) clearInterval(botIntervalRef.current);
@@ -166,6 +167,10 @@ export function MatchRoom({
         updateUserRating(layout, delta, isWin, "1v1");
       }
 
+      setDailyWon(earnDailyReward(correct, finalAccuracy));
+      if (correct > 0) for (const code of Object.keys(SPEED_TITLES)) {
+        if (finalCpm >= Number(code.slice(6))) unlockAchievement(code);
+      }
       const updated = getCurrentUser();
       const newRating = layout === "ru" ? updated.ratingRu : updated.ratingEn;
       const rank = getChessRank(newRating);
@@ -191,7 +196,7 @@ export function MatchRoom({
         medalAwarded: !isWin || (mode === "tournament" && tournamentStage !== "final") ? undefined : mode === "etude" || mode === "tournament" ? "gold" : "silver",
       });
     },
-    [layout, mode, player.accuracy, player.cpm, playerRating, raceText, rival, timeControl, tournamentStage]
+    [layout, mode, player.progressPercent, player.accuracy, player.cpm, playerRating, raceText, rival, timeControl, tournamentStage]
   );
 
   useEffect(() => {
@@ -313,7 +318,7 @@ export function MatchRoom({
 
       // Player won!
       if (valid && nextBuffer.length === raceText.length) {
-        handleFinishMatch(true, currentCpm, accuracy);
+        handleFinishMatch(true, currentCpm, accuracy, correct);
       }
     }
   };
@@ -323,6 +328,7 @@ export function MatchRoom({
     settled.current = false;
     attempts.current = { total: 0, errors: 0 };
     setPromotion("");
+    setDailyWon(false);
     setInputBuffer("");
     setRaceText(getRandomArenaText(layout, mode));
     setWinner(null);
@@ -449,6 +455,7 @@ export function MatchRoom({
       {phase === "finished" ? (
         <div className="match-result-modal-backdrop">
           <div className="match-result-modal">
+            {dailyWon && <p className="quest-award" role="status">✦ Задание дня выполнено · +30 монет</p>}
             {promotion && <p className="arena-promotion" role="status">Новый ранг · {promotion}</p>}
             <div className="result-modal-icon">
               {winner === "player" || winner === "blue" ? "🏆" : "🏎️"}

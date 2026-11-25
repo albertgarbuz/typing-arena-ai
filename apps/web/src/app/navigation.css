@@ -64,3 +64,17 @@
  .keyboard--hero .keycap[data-pressed="true"] {translate:0 2px}
 }
 @media(prefers-reduced-motion:reduce){.finger-map__finger {translate:none!important}}
+
+.daily-quest {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;padding:clamp(18px,3vw,34px);border:1px solid var(--border);border-radius:18px;margin-bottom:1rem;background:linear-gradient(110deg,var(--soft-mint),var(--surface))}
+.daily-quest h2 {margin:8px 0}
+.quest-award,.toy-display {display:block;padding:1rem;color:var(--text);background:var(--surface);border:1px solid var(--mint);border-radius:12px;margin-block:1rem;font:inherit}
+.toy-display {cursor:pointer}
+.toy-display span {display:inline-block;font-size:2rem;margin-right:1em}
+@media(prefers-reduced-motion:no-preference){
+ .toy-motion.toy-satellite {animation:toy-orbit .85s ease-in-out}
+ .toy-motion.toy-robot {animation:toy-beat .2s ease-in-out 4 alternate}
+ .toy-motion.toy-comet {animation:toy-dash .7s ease-in-out}
+ @keyframes toy-orbit{50%{transform:translate(20px,-10px) rotate(50deg)}}
+ @keyframes toy-beat{to{transform:rotate(-20deg) translateY(-5px)}}
+ @keyframes toy-dash{50%{transform:translate(25px,-15px) scale(.7)}}
+}
