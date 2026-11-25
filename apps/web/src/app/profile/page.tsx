@@ -200,6 +200,18 @@ export default function ProfilePage() {
             </div>
           ) : null}
 
+          <section className="daily-quest profile-club-tools" aria-label="Клуб и соревнования">
+            <form action="../players/" method="get">
+              <label htmlFor="profile-player-search">Найти игрока</label>
+              <div><input id="profile-player-search" name="q" type="search" placeholder="Ник игрока" required />
+                <button className="button button--primary">Найти</button></div>
+            </form>
+            <div>
+              <Link className="button button--secondary" href="/players?publish=1">Создать открытую карточку</Link>
+              <a className="button button--secondary" href="../club/">Друзья и чат</a>
+              <Link className="button button--secondary" href="/arena">На арену</Link>
+            </div>
+          </section>
           <iframe ref={socialFrame} title="Мой фотопрофиль" src="../club/?profile=1"
             key={user.nickname+user.createdAt} style={{width:"100%",height:socialHeight,border:0,display:"block",marginBottom:"1rem"}} />
           <section className="daily-quest">

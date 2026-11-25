@@ -15,6 +15,10 @@ type Kind = typeof kinds[number];
 type Card = {id:number; name:string; kind:Kind; note:string; login:string; replies:number; updated:string};
 type Issue = {number:number; title:string; body:string|null; user:{login:string}; comments:number; updated_at:string; pull_request?:unknown};
 type Watch = Record<string,string>;
+type Contact = {id:string; name:string};
+function normalize(value:string) {
+  return value.normalize("NFKC").toLowerCase().replace(/ё/g,"е").replace(/[\s@_-]+/g,"");
+}
 
 function decodeIssue(issue: Issue): Card[] {
   if (issue.pull_request || !issue.title.startsWith(prefix)) return [];
@@ -43,6 +47,7 @@ export default function PlayersPage(){
   let profile;
   try {profile=JSON.parse(raw)} catch {profile={}}
   const watchKey="typing-arena-plaza-follow-v1/"+[profile.authProvider,profile.id,profile.email,profile.createdAt].join("/");
+  const [contacts,setContacts]=useState<Contact[]>([]);
   const [watch,setWatch]=useState<Watch>({});
   const [cards,setCards]=useState<Card[]>([]);
   const [filter,setFilter]=useState("Все");
@@ -54,7 +59,27 @@ export default function PlayersPage(){
   const [compose,setCompose]=useState(false);
   const [version,refresh]=useState(0);
   const [status,setStatus]=useState("loading");
-  useEffect(()=>{setWatch(readWatch(watchKey))},[watchKey]);
+  const clubKey="typing-arena-club-v1/"+[profile.authProvider || "guest",profile.email || profile.id || "guest",profile.createdAt || ""].join("/");
+  useEffect(()=>{
+    const params=new URLSearchParams(location.search);
+    setSearch(params.get("q") || "");
+    setCompose(params.get("publish")==="1");
+  },[]);
+  useEffect(()=>{
+    setWatch(readWatch(watchKey));
+    function loadContacts(){
+      try {
+        const friends=JSON.parse(localStorage.getItem(clubKey) || "{}").friends || {};
+        setContacts(Object.entries(friends).flatMap(([id,friend])=>{
+          const contact=friend as {name?:unknown};
+          return typeof contact?.name==="string" ? [{id,name:contact.name}] : [];
+        }));
+      } catch {setContacts([])}
+    }
+    loadContacts();
+    window.addEventListener("storage",loadContacts);
+    return ()=>window.removeEventListener("storage",loadContacts);
+  },[watchKey,clubKey]);
   useEffect(()=>{
     const ctrl=new AbortController();
     async function reload(){
@@ -76,11 +101,25 @@ export default function PlayersPage(){
   }
   const nick=(name ?? profile.nickname ?? "").trim();
   const postUrl="https://github.com/"+repo+"/issues/new?"+new URLSearchParams({title:prefix+kind+" · "+nick,body:note.trim()});
+  const query=normalize(search);
+  const matches=(...values:string[])=>values.some(value=>normalize(value).includes(query));
+  const foundContacts=query ? contacts.filter(contact=>matches(contact.name)) : [];
+  const foundSelf=Boolean(query && profile.nickname && matches(profile.nickname));
   const visible=cards.filter(card=>(filter==="Все" || (filter==="Слежу" ? Boolean(watch["@"+card.login]) : card.kind===filter)) &&
-    [card.name,card.login,card.note].some(v=>v.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())));
+    matches(card.name,card.login,card.note));
   return <><SiteHeader/><main className="plaza layout-container" id="main-content">
     <header className="plaza-head"><div><h1>Клубная площадь</h1><p>Найди напарника для тренировки, предложи заезд или делись прогрессом на пути к цели.</p></div>
     <button className="button button--primary" aria-expanded={compose} onClick={()=>setCompose(!compose)}>{compose?"Закрыть форму":"＋ Разместить карточку"}</button></header>
+    <div className="plaza-quick">
+      <label>Найти игрока<input type="search" placeholder="Например, Fantom777" value={search} onChange={e=>{setSearch(e.target.value);setFilter("Все")}}/></label>
+      <Link className="button button--secondary" href="/profile">Мой профиль</Link>
+      <a className="button button--secondary" href="../club/">Друзья и чат</a>
+    </div>
+    {query && <section className="plaza-contacts" aria-label="Профили из клуба">
+      {foundSelf && <Link href="/profile">{profile.nickname} · твой профиль →</Link>}
+      {foundContacts.map(friend=><a key={friend.id} href={"../club/#player="+encodeURIComponent(friend.id)}>{friend.name} · друг →</a>)}
+      <p role="status">{visible.length} открытых карточек · {foundContacts.length} друзей{foundSelf?" · найден твой профиль":""}</p>
+    </section>}
     <div className="plaza-view" role="group" aria-label="Вид площади">
       <button aria-pressed={view==="globe"} onClick={()=>setView("globe")}>3D-планета</button>
       <button aria-pressed={view==="list"} onClick={()=>setView("list")}>Список</button>
@@ -94,12 +133,12 @@ export default function PlayersPage(){
       {nick && note.trim() ? <a className="button button--primary" href={postUrl} target="_blank" rel="noreferrer">Открыть черновик в GitHub ↗</a> : <button className="button" disabled>Открыть черновик в GitHub ↗</button>}
     </section>}
     <div className="plaza-tools"><div role="group" aria-label="Фильтр карточек">{["Все",...kinds,"Слежу"].map(k=><button key={k} aria-pressed={filter===k} onClick={()=>setFilter(k)}>{k}</button>)}</div>
-      <input type="search" aria-label="Поиск игроков" placeholder="Поиск по нику или тексту" value={search} onChange={e=>setSearch(e.target.value)}/></div>
+      </div>
     <div className="plaza-bar"><h2>{filter==="Слежу"?"Мои подписки":"Открытые карточки"}</h2><button onClick={()=>refresh(n=>n+1)}>Обновить</button></div>
     {status==="error" && <p role="status">GitHub временно не вернул список. Можно повторить загрузку или <a href={`https://github.com/${repo}/issues`}>открыть записи в GitHub</a>.</p>}
     {status==="loading" && <p role="status">Загружаем карточки…</p>}
-    {status==="ready" && !visible.length && <section className="plaza-empty"><h3>{filter==="Слежу"?"Здесь появятся твои подписки":cards.length?"Карточек по этому запросу пока нет":"Кто выйдет на первый заезд?"}</h3>
-      <p>{filter==="Слежу"?"Нажми «Следить за игроком» на его карточке. Здесь появятся его записи, новые ответы и изменения.":cards.length?"Попробуй другой ник или фильтр.":"Площадь открыта. Оставь время, раскладку и дистанцию, чтобы соперник мог ответить."}</p></section>}
+    {status==="ready" && !visible.length && <section className="plaza-empty"><h3>{filter==="Слежу"?"Здесь появятся твои подписки":(cards.length || query)?"Открытых карточек по запросу пока нет":"Кто выйдет на первый заезд?"}</h3>
+      <p>{filter==="Слежу"?"Нажми «Следить за игроком» на его карточке. Здесь появятся его записи, новые ответы и изменения.":(cards.length || query)?"Публичная карточка появляется после публикации. Друзья и твой профиль показаны над планетой.":"Площадь открыта. Оставь время, раскладку и дистанцию, чтобы соперник мог ответить."}</p></section>}
     <div className="plaza-grid">{visible.map(c=><article key={c.id} id={"player-"+c.id} tabIndex={-1}><small>{c.kind}</small><h3>{c.name}</h3><span>@{c.login}</span><p>{c.note}</p>
       {watch["@"+c.login] && (watch["read-"+c.id] || watch["@"+c.login])<c.updated && <strong>Есть обновление</strong>}
       <footer><a href={`https://github.com/${repo}/issues/${c.id}`} target="_blank" rel="noreferrer" onClick={()=>{if(watch["@"+c.login])updateWatch(c,"read")}}>Ответы · {c.replies} ↗</a>

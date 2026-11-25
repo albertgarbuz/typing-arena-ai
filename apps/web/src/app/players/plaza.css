@@ -21,3 +21,9 @@
 .globe-marker::before{content:"";display:inline-block;width:7px;height:7px;margin-right:.5em;border-radius:50%;background:#87ffdb;box-shadow:0 0 9px #87ffdb}
 .globe-footer{display:flex;gap:8px 20px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:12px 17px;font-size:.87rem}
 .plaza-grid article:focus{outline:2px solid var(--mint);scroll-margin-top:90px}
+
+.plaza-quick {display:flex;align-items:end;gap:12px;flex-wrap:wrap;padding:16px;margin-top:20px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.plaza-quick label {display:grid;gap:5px;flex:1 1 220px;font-weight:600}
+.plaza-contacts {display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.plaza-contacts a {border:1px solid var(--border);border-radius:9px;padding:8px 12px}
+.plaza-contacts p {flex-basis:100%;margin:0}

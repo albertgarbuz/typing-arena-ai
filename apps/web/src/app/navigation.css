@@ -119,3 +119,9 @@ body>.flying-letter {color:var(--mint)}
 .achievement-filters button[aria-pressed=true]{border-color:var(--mint);color:var(--mint);background:var(--soft-mint)}
 
 .club-portrait {width:1.55em;height:1.55em;object-fit:cover;border-radius:50%;vertical-align:middle}
+
+.profile-club-tools label{display:block;margin-bottom:6px;font-weight:650}
+.profile-club-tools div{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.profile-club-tools input{border:1px solid var(--border);padding:10px;border-radius:8px;color:var(--text);background:var(--bg);font:inherit;max-width:100%}
+.metrics-input{display:grid;gap:.5rem;margin:1rem 0}
+.metrics-input input{font:inherit;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);padding:.6rem;width:min(100%,30rem)}
