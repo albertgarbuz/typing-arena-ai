@@ -236,13 +236,12 @@ export default function ArenaLobbyPage() {
             {/* Mode 4: Chess Keyboard Etude */}
             <div className="arena-mode-card">
               <div className="arena-mode-card__top">
-                <span className="mode-badge">ТАКТИКА ДНЯ</span>
-                <span className="mode-icon">♟️</span>
+                <span className="mode-badge">ТОЧНОСТЬ</span>
+                <span className="mode-icon">🎯</span>
               </div>
               <h2 className="arena-mode-card__title">Испытание точности</h2>
               <p className="arena-mode-card__desc">
-                Тактическая связка повышенной сложности: редкие знаки и пунктуация.
-                Требуется 100% точность для победы.
+                Короткий текст из строчных букв и пробелов. Набери его точно и сохрани ровный темп.
               </p>
               <button
                 type="button"

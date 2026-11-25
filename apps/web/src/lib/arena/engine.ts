@@ -96,30 +96,35 @@ export function create2v2MatchRoster(
 }
 
 export const ARENA_TEXTS_RU = [
-  "Победа в гонке достаётся не тому, кто суетится и жмёт наугад, а тому, кто сохраняет хладнокровие и держит чистый ритм. Каждый палец бьёт точно в цель, а взгляд устремлён только вперёд.",
-  "На высокой скорости трасса не прощает ошибок. Один сбой ломает темп и отбрасывает назад. Держите пальцы на базовом ряду, чувствуйте ориентиры и двигайтесь к финишу на пределе возможностей.",
-  "Истинный мастер печати обгоняет соперников за счёт стабильности. Когда пальцы скользят по клавишам легко и непрерывно, скорость нарастает сама, оставляя противника позади.",
-  "Секунды тают на глазах, когда оба гонщика идут ноздря в ноздрю. В этот момент решает только мышечная память и абсолютная концентрация на каждом символе текста.",
-  "Секрет ровного темпа прост: не делай резких лишних движений, просчитывай следующие три слова наперёд и держи непрерывный каденс ударов по клавишам.",
+  "победа в гонке достаётся не тому кто суетится и жмёт наугад а тому кто сохраняет хладнокровие и держит чистый ритм каждый палец бьёт точно в цель а взгляд устремлён только вперёд",
+  "на высокой скорости трасса не прощает ошибок один сбой ломает темп и отбрасывает назад держите пальцы на базовом ряду чувствуйте ориентиры и двигайтесь к финишу на пределе возможностей",
+  "истинный мастер печати обгоняет соперников за счёт стабильности когда пальцы скользят по клавишам легко и непрерывно скорость нарастает сама оставляя противника позади",
+  "секунды тают на глазах когда оба гонщика идут ноздря в ноздрю в этот момент решает только мышечная память и абсолютная концентрация на каждом символе текста",
+  "секрет ровного темпа прост не делай резких лишних движений просчитывай следующие три слова наперёд и держи непрерывный каденс ударов по клавишам",
 ];
 
 export const ARENA_TEXTS_EN = [
-  "True champions in the typing arena stay calm under intense pressure. Rapid fingers strike with absolute confidence, turning pure focus into unmatched velocity on the racetrack.",
-  "In a sprint duel every single keystroke matters. Avoid hasty mistakes that break your cadence, trust your muscle memory, and surge ahead across the finish line.",
-  "Speed without precision leads to defeat. Maintain a steady, relentless rhythm from the first word to the last, and victory in the arena will be yours.",
-  "High-speed typing requires forethought: scan two words ahead, keep calm breathing, and let finger muscle memory execute the moves cleanly.",
+  "true champions in the typing arena stay calm under intense pressure rapid fingers strike with absolute confidence turning pure focus into unmatched velocity on the racetrack",
+  "in a sprint duel every single keystroke matters avoid hasty mistakes that break your cadence trust your muscle memory and surge ahead across the finish line",
+  "speed without precision leads to defeat maintain a steady relentless rhythm from the first word to the last and victory in the arena will be yours",
+  "high speed typing requires forethought scan two words ahead keep calm breathing and let finger muscle memory execute the moves cleanly",
 ];
 
-// Chess Keyboard Etudes: complex tactical combinations
-export const CHESS_ETUDES_RU = [{ title: "Спринт разработчика", hint: "Код и пунктуация", text: "скорость = 120; пока (таймер > 0) { ритм = скорость + 1; }" }, { title: "Код импульса", hint: "Цифры и пунктуация", text: "Сектор 7: частота 42 Гц. На счёт три запустите цикл (А-19), удержите ритм и подтвердите сигнал!" }];
-export const CHESS_ETUDES_EN = [{ title: "Code sprint", hint: "Brackets and punctuation", text: "const speed = 120; const ready = true; if (ready) { startRace(speed); }" }, { title: "Signal relay", hint: "Numbers and punctuation", text: "Sector 7: set the relay to 42 Hz. Start cycle (A-19), keep a steady rhythm, and confirm the signal!" }];
+const accuracyTexts = {
+  ru: [
+    "лёгкий ветер качает траву пока мы идём по тропе вдоль реки",
+    "утром во дворе тихо и слышно как птицы поют под окном",
+    "ровный ритм помогает пальцам легко находить нужные буквы",
+  ],
+  en: [
+    "a soft wind moves the grass as we walk along the river",
+    "the sky turns blue as the first birds sing outside the window",
+    "find a steady rhythm and let your fingers follow the words",
+  ],
+};
 
 export function getRandomArenaText(layout: "ru" | "en", mode: MatchMode = "1v1"): string {
-  if (mode === "etude") {
-    const etudes = layout === "ru" ? CHESS_ETUDES_RU : CHESS_ETUDES_EN;
-    return etudes[Math.floor(Math.random() * etudes.length)].text;
-  }
-  const texts = layout === "ru" ? ARENA_TEXTS_RU : ARENA_TEXTS_EN;
+  const texts = mode === "etude" ? accuracyTexts[layout] : layout === "ru" ? ARENA_TEXTS_RU : ARENA_TEXTS_EN;
   return texts[Math.floor(Math.random() * texts.length)];
 }
 

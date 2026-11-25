@@ -32,22 +32,56 @@ async function loadIdentity(){
 }
 let keys,publicKey,ownId,pc,channel,offerId,expected='',pending,peer,selected,timeout;
 const ownMedia=()=>cleanMedia(state.media);
-function showMedia(id,list,editable=false){
- const gallery=document.createElement('div');gallery.className='gallery';
- for(const item of cleanMedia(list)){
-  const fig=document.createElement('figure'),img=new Image();img.src=item.url;img.className=item.kind;
-  img.alt={photo:'Фото профиля',post:'Фото в ленте',story:'Сторис'}[item.kind];
-  const view=text('button','');view.className='photo-button';view.setAttribute('aria-label','Открыть · '+img.alt);
-  view.onclick=()=>{if(!cleanMedia([item]).length){render();return}
-    $('viewer-image').src=item.url;$('viewer-image').alt=img.alt;
-    $('viewer-caption').textContent=img.alt+(item.kind==='story'?' · до '+new Date(item.at+86400000).toLocaleString('ru-RU'):'');
-    $('viewer').showModal()
-  };view.append(img);fig.append(view,text('figcaption',img.alt));
-  if(editable){const del=text('button','Удалить');del.onclick=guard(()=>{state.media=state.media.filter(it=>it.at!==item.at);save();render();sendMedia()});fig.append(del)}
-  gallery.append(fig)
- }
- $(id).replaceChildren(gallery)
+let viewingFriend=null;
+let viewingItem=null;
+const embedded=new URLSearchParams(location.search).has("profile") && window.parent!==window;
+if(embedded){document.body.classList.add("embedded");$("full-club").hidden=false}
+function openMedia(item,editable){
+ if(!cleanMedia([item]).length)return;
+ viewingItem=editable?item:null;
+ $("viewer-image").src=item.url;
+ $("viewer-image").alt={photo:"Фото профиля",post:"Публикация",story:"История"}[item.kind];
+ $("viewer-caption").textContent=$("viewer-image").alt+" · "+new Date(item.at).toLocaleDateString("ru-RU");
+ $("delete-media").hidden=!editable;
+ $("viewer").showModal();
 }
+function tile(item,editable){
+ const button=text("button","");
+ button.className="media-tile "+item.kind;
+ const img=new Image();img.src=item.url;
+ img.alt={photo:"Фото профиля",post:"Публикация",story:"История"}[item.kind];
+ button.setAttribute("aria-label","Открыть · "+img.alt);button.append(img);
+ button.onclick=()=>openMedia(item,editable);
+ return button;
+}
+function showProfile(name,media,editable){
+ const list=cleanMedia(media);
+ const posts=list.filter(item=>item.kind==="post").reverse();
+ const stories=list.filter(item=>item.kind==="story").reverse();
+ const photo=list.find(item=>item.kind==="photo");
+ $("nick").textContent=name;
+ $("counts").textContent="Публикации · "+posts.length+"　 Истории · "+stories.length;
+ $("uploads").hidden=!editable;$("share-page").hidden=!editable;$("open-chat").hidden=editable;$("back-own").hidden=editable;
+ const fallback=text("span",name.slice(0,1).toUpperCase());fallback.className="initial";
+ $("portrait").replaceChildren(photo?tile(photo,editable):fallback);
+ const feed=$("own");feed.replaceChildren();
+ const strip=document.createElement("div");strip.className="story-strip";
+ if(stories.length){
+  for(const item of stories){const fig=document.createElement("figure");fig.append(tile(item,editable),text("figcaption",new Date(item.at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})));strip.append(fig)}
+ }else strip.append(text("small","Пока нет историй"));
+ const grid=document.createElement("div");grid.className="post-grid";
+ for(const item of posts)grid.append(tile(item,editable));
+ feed.append(text("h2","Истории"),strip,text("h2","Публикации"),posts.length?grid:text("p",editable?"Добавь первое фото в ленту.":"Публикаций пока нет."));
+}
+$("back-own").onclick=()=>{viewingFriend=null;render()};
+$("open-chat").onclick=()=>{$("room").scrollIntoView();if(!$("message").disabled)$("message").focus()};
+$("share-page").onclick=guard(async()=>{
+ if(!ownId)return;
+ const link=new URL("./",location.href);link.hash="player="+ownId;
+ try{await navigator.clipboard.writeText(link.href);$("share-status").textContent=" Ссылка скопирована для друзей клуба."}
+ catch{window.prompt("Скопируй ссылку для друзей",link.href)}
+});
+$("delete-media").onclick=guard(()=>{if(!viewingItem)return;state.media=state.media.filter(item=>item.at!==viewingItem.at);save();$("viewer").close();render();sendMedia()});
 async function attach(input){
  const file=input.files[0];input.value='';if(!file)return;
  if(!file.type.startsWith('image/')||file.size>16000000)throw Error('Выбери изображение до 16 МБ.');
@@ -63,13 +97,13 @@ async function attach(input){
  state.media=[...items,{kind,url,at:Date.now()}];save();render();sendMedia();
 }
 function render(){
- $('nick').textContent=nickname;showMedia('own',ownMedia(),true);$('friends').replaceChildren();
+ const viewed=state.friends[viewingFriend];showProfile(viewed?.name || nickname,viewed ? viewed.media : ownMedia(), !viewed);$('friends').replaceChildren();
  for(const [id,friend] of Object.entries(state.friends)){
   const btn=text('button',friend.name+(channel?.readyState==='open'&&peer?.id===id?' · онлайн':''));btn.className='friend';
-  btn.onclick=()=>{selected=id;render()};$('friends').append(btn)
+  btn.onclick=()=>{selected=id;viewingFriend=id;render();$("social-profile").scrollIntoView({block:"start"})};$('friends').append(btn)
  }
  const f=state.friends[selected];$('room').hidden=!f;if(!f){window.dispatchEvent(new Event('typing-club:state'));return}
- $('who').textContent=f.name;showMedia('their',f.media);
+ $('who').textContent=f.name;
  window.dispatchEvent(new Event('typing-club:state'));
  const online=peer?.id===selected&&channel?.readyState==='open';
  $('compose').querySelector('button').disabled=!online;$('message').disabled=!online;
@@ -120,7 +154,7 @@ async function inspect(value){
 function transmit(packet){if(channel?.readyState==='open')channel.send(JSON.stringify(packet))}
 function sendMedia(){if(channel?.readyState!=='open')return;transmit({kind:'album',ids:ownMedia().map(it=>it.at)});for(const item of ownMedia())transmit({kind:'image',item})}
 function bind(dc){
- channel=dc;dc.onopen=()=>{if(dc!==channel||!peer)return;const id=peer.id;state.friends[id]??={name:peer.name,messages:[],media:[]};state.friends[id].name=peer.name;selected=id;save();$('outbox').hidden=true;say('Личный канал открыт. Теперь можно переписываться.');render();sendMedia()};
+ channel=dc;dc.onopen=()=>{if(dc!==channel||!peer)return;const id=peer.id;state.friends[id]??={name:peer.name,messages:[],media:[]};state.friends[id].name=peer.name;selected=id;viewingFriend=id;save();$('outbox').hidden=true;say('Личный канал открыт. Теперь можно переписываться.');render();sendMedia()};
  dc.onclose=()=>{if(channel!==dc)return;say('Чат отключён. Переписка сохранена на устройстве.');render()};
  dc.onmessage=guard(e=>{if(dc!==channel||!peer||typeof e.data!=='string'||e.data.length>54000)return;
  const f=state.friends[peer.id];if(!f)return;const packet=JSON.parse(e.data);
@@ -159,5 +193,16 @@ window.typingClub={
  isOnline:()=>channel?.readyState==='open',
  send:payload=>{if(channel?.readyState!=='open')return false;transmit({kind:'sprint',payload});return true}
 };
-try{keys=await loadIdentity();publicKey=b64(await crypto.subtle.exportKey('raw',keys.publicKey));ownId=await digest(publicKey);render();if(location.hash.startsWith('#join=')){const val=location.href;history.replaceState(null,'',location.pathname);await inspect(val)}}catch(e){say(e.message)}
+try{keys=await loadIdentity();publicKey=b64(await crypto.subtle.exportKey('raw',keys.publicKey));ownId=await digest(publicKey);
+ if(location.hash.startsWith("#player=")){
+   const id=location.hash.slice(8);
+   if(state.friends[id]){viewingFriend=id;selected=id}
+   else if(id!==ownId)say("Этот профиль доступен принятым друзьям. Попроси игрока прислать приглашение.");
+ }
+ render();if(location.hash.startsWith('#join=')){const val=location.href;history.replaceState(null,'',location.pathname);await inspect(val)}}catch(e){say(e.message)}
 setInterval(()=>{const album=ownMedia();if(album.length!==state.media.length){state.media=album;save();sendMedia()}render()},60000);
+
+if(embedded){
+ const resize=()=>window.parent.postMessage({type:"arena-profile-height",height:document.querySelector("main").offsetHeight},location.origin);
+ new ResizeObserver(resize).observe(document.querySelector("main"));resize();
+}

@@ -10,3 +10,15 @@
 .sprint-faces{display:flex;flex-wrap:wrap;gap:18px}
 .sprint-faces span{display:inline-flex;align-items:center;gap:8px;font-weight:650}
 .sprint-faces img{border-radius:50%;object-fit:cover;border:2px solid #75e4ca}
+
+:root{background:#101119;color:#f6f4fa}.social-sheet{background:#14151e;border-color:#32323e;padding:clamp(18px,4vw,34px)}
+.profile-head{display:flex;align-items:center;gap:clamp(14px,4vw,32px);margin-bottom:20px}.profile-head h1{font-size:clamp(25px,5vw,43px);line-height:1.15;overflow-wrap:anywhere;margin:0}.profile-head p{margin:.45em 0;color:#c7c4d1}
+#portrait{flex:none;padding:3px;background:linear-gradient(140deg,#ffc57c,#fa67a5 55%,#9775ff);border-radius:50%}
+.initial,#portrait .media-tile{display:grid;place-items:center;border-radius:50%;width:clamp(64px,14vw,96px);aspect-ratio:1;border:3px solid #15151f;box-sizing:border-box}.initial{font-size:2rem;background:#30273f;color:#f9c8df}
+.media-tile{padding:0;border:0;border-radius:0;display:block;overflow:hidden;background:#252632}.media-tile img{width:100%;height:100%;object-fit:cover;display:block}
+#uploads label{padding:7px 12px;background:#292934;border:0;border-radius:8px;font-size:.875rem}
+#own h2{font-size:.94rem;margin:20px 0 10px}
+.story-strip{display:flex;gap:12px;overflow:auto;padding:3px}.story-strip figure{margin:0;text-align:center}.story-strip figcaption,.story-strip small{font-size:.8rem;color:#aaa8b6}.story-strip .story{padding:3px;border-radius:50%;background:linear-gradient(145deg,#ffc67e,#f65d9e,#9b77ff);width:62px;height:62px}.story img{border:2px solid #171822;border-radius:50%}
+.post-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.post-grid button{width:100%;aspect-ratio:1}.media-tile:focus-visible{outline:3px solid #bba6ff;outline-offset:-3px}
+#own{border-top:1px solid #343440;margin-top:18px}#own p{font-size:.9rem;color:#aba8b6}#full-club{display:inline-block;margin-top:1rem}
+.embedded,.embedded main{margin:0;padding:0;background:transparent;max-width:none}.embedded main>section:not(.social-sheet),.embedded nav{display:none}.embedded .social-sheet{margin:0}

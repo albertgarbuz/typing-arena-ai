@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useMemo, useState, useSyncExternalStore } from "react";
 import { getArenaBest, getMatchHistory } from "@/lib/arena/engine";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
@@ -78,6 +78,17 @@ export default function ProfilePage() {
   const [authSuccessNotice, setAuthSuccessNotice] = useState("");
 
   // Active profile subtab
+  const socialFrame = useRef<HTMLIFrameElement>(null);
+  const [socialHeight, setSocialHeight] = useState(420);
+  useEffect(() => {
+    const resize = (event: MessageEvent) => {
+      if (event.origin===location.origin && event.source===socialFrame.current?.contentWindow &&
+          event.data?.type==="arena-profile-height" && Number.isFinite(event.data.height))
+        setSocialHeight(Math.min(1600, Math.max(220,Math.ceil(event.data.height)+4)));
+    };
+    window.addEventListener("message",resize);
+    return ()=>window.removeEventListener("message",resize);
+  },[]);
   const [achievementGroup,setAchievementGroup] = useState("Основные");
   const [profileTab, setProfileTab] = useState<"achievements" | "shop" | "chess">("achievements");
 
@@ -189,10 +200,8 @@ export default function ProfilePage() {
             </div>
           ) : null}
 
-          <section className="daily-quest social-entry">
-            <div><h2>Друзья на арене</h2><p>Добавь своё фото, пригласи друга и договорись о следующем заезде.</p></div>
-            <a className="button button--primary" href="../club/">Открыть клуб →</a>
-          </section>
+          <iframe ref={socialFrame} title="Мой фотопрофиль" src="../club/?profile=1"
+            key={user.nickname+user.createdAt} style={{width:"100%",height:socialHeight,border:0,display:"block",marginBottom:"1rem"}} />
           <section className="daily-quest">
             <div><span className="eyebrow">Задание дня · 30 монет</span>
               <h2>{user.dailyAwardDate === goal.day ? "Сегодняшняя награда получена" : "Точный заезд"}</h2>
