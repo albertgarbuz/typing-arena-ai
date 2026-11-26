@@ -148,7 +148,7 @@ async function inspect(value){
  if(p.key===publicKey)throw Error('Это твоя собственная ссылка. Нужна ссылка друга.');
  if(p.type==='offer'&&p.to&&p.to!==await digest(publicKey))throw Error('Приглашение адресовано другому игроку.');
  if(p.type==='answer'&&(!pc||pc.signalingState!=='have-local-offer'||offerId!==p.id||p.to!==await digest(publicKey)||(expected&&expected!==p.peerId)))throw Error('Вставь ответ во вкладке, где создавалось это приглашение.');
- pending=p;$('detail').textContent=p.name+' · '+p.peerId.slice(0,12)+' · '+(p.type==='offer'?'предлагает дружбу и личный чат':'принимает твоё приглашение');
+ $('chat-connect').open=true;pending=p;$('detail').textContent=p.name+' · '+p.peerId.slice(0,12)+' · '+(p.type==='offer'?'предлагает дружбу и личный чат':'принимает твоё приглашение');
  $('review').hidden=false
 }
 function transmit(packet){if(channel?.readyState==='open')channel.send(JSON.stringify(packet))}
@@ -166,7 +166,7 @@ function bind(dc){
  else if(packet.kind==='image'){const [item]=cleanMedia([packet.item]);if(item){f.media=cleanMedia([...f.media.filter(it=>it.at!==item.at),item]);save()}}
  render()})
 }
-async function invite(id=''){const conn=fresh();offerId=crypto.randomUUID();expected=id;bind(conn.createDataChannel('typing-arena'));await conn.setLocalDescription(await conn.createOffer());await exportSignal('offer',offerId,await gather(conn),expected);say('Отправь приглашение другу. Действует 20 минут.')}
+async function invite(id=''){$('chat-connect').open=true;const conn=fresh();offerId=crypto.randomUUID();expected=id;bind(conn.createDataChannel('typing-arena'));await conn.setLocalDescription(await conn.createOffer());await exportSignal('offer',offerId,await gather(conn),expected);say('Отправь приглашение другу. Действует 20 минут.')}
 $('invite').onclick=guard(()=>invite());
 $('reconnect').onclick=guard(()=>invite(selected));
 $('accept').onclick=guard(async()=>{const p=pending;if(!p||p.expires<=Date.now())throw Error('Ссылка устарела.');$('review').hidden=true;
@@ -199,7 +199,7 @@ try{keys=await loadIdentity();publicKey=b64(await crypto.subtle.exportKey('raw',
    if(state.friends[id]){viewingFriend=id;selected=id}
    else if(id!==ownId)say("Этот профиль доступен принятым друзьям. Попроси игрока прислать приглашение.");
  }
- render();if(location.hash.startsWith('#join=')){const val=location.href;history.replaceState(null,'',location.pathname);await inspect(val)}}catch(e){say(e.message)}
+ render();if(location.hash.startsWith('#join=')){$('chat-connect').open=true;const val=location.href;history.replaceState(null,'',location.pathname);await inspect(val)}}catch(e){say(e.message)}
 setInterval(()=>{const album=ownMedia();if(album.length!==state.media.length){state.media=album;save();sendMedia()}render()},60000);
 
 if(embedded){

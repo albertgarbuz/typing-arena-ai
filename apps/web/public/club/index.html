@@ -1,8 +1,32 @@
-<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Клуб игроков · Typing Arena</title><link rel="stylesheet" href="./club.css"><main>
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Клуб игроков · Typing Arena</title><link rel="stylesheet" href="./club.css?v=duel-1"><main>
 <nav><a href="../players/">Клубная площадь</a><a href="../profile/">← Мой профиль</a><a href="../arena/">На арену →</a></nav><section class="social-sheet" id="social-profile">
 <div class="profile-head"><div id="portrait"></div><div><h1 id="nick">Мой профиль</h1><p id="counts"></p><button type="button" id="share-page">Ссылка для друзей</button><small id="share-status" role="status"></small><button type="button" id="open-chat" hidden>Написать</button> <button type="button" id="back-own" hidden>← Моя страница</button></div></div>
 <div class="row" id="uploads"><label>Сменить аватар<input type="file" accept="image/*" data-kind="photo"></label><label>＋ Публикация<input type="file" accept="image/*" data-kind="post"></label><label>＋ История<input type="file" accept="image/*" data-kind="story"></label></div>
 <div id="own"></div><a id="full-club" href="./" target="_top" hidden>Друзья и сообщения →</a></section>
-<section><h2>Друзья</h2><div id="friends"></div><button id="invite">Пригласить игрока</button><p>Оставь вкладку открытой. Отправь другу приглашение, а полученную от него ответную ссылку вставь ниже. Для нового сеанса повтори обмен. Обоим игрокам нужно быть онлайн.</p><div id="outbox" hidden><label id="outlabel" for="out">Ссылка</label><textarea id="out" readonly></textarea><button id="copy">Скопировать ссылку</button></div><label for="incoming">Приглашение или ответ друга</label><textarea id="incoming" placeholder="Вставь ссылку"></textarea><button id="inspect">Проверить ссылку</button><div id="review" hidden><p id="detail"></p><button id="accept">Принять</button></div><p id="status" role="status"></p></section>
+<section class="duel-card" aria-labelledby="duel-title">
+  <div class="duel-card__top">
+    <div>
+      <h2 id="duel-title">Дуэль с другом</h2>
+      <p>Один текст на двоих. 30 секунд, чтобы обогнать друга по числу верных знаков.</p>
+    </div>
+    <div class="duel-card__versus" aria-hidden="true">1 <span>×</span> 1</div>
+  </div>
+  <ol class="duel-card__steps">
+    <li>Создай комнату</li>
+    <li>Отправь ссылку</li>
+    <li>Стартуйте вместе</li>
+  </ol>
+  <a class="duel-card__link" href="https://typing-arena-ai.albert-garbuz89.chatgpt.site/duel/">Пригласить друга в арену <span aria-hidden="true">→</span></a>
+  <p class="duel-card__note">Для входа в комнату обоим нужен аккаунт и сохранённый ник на арене.</p>
+</section>
+<section>
+  <h2>Друзья и сообщения</h2><div id="friends"></div>
+  <details id="chat-connect">
+    <summary>Подключить личный чат</summary>
+    <p>Обменяйтесь ссылками для подключения к чату. Оставьте эту вкладку открытой.</p>
+    <button id="invite" type="button">Создать ссылку для чата</button>
+    <div id="outbox" hidden><label id="outlabel" for="out">Ссылка</label><textarea id="out" readonly></textarea><button id="copy">Скопировать ссылку</button></div><label for="incoming">Ссылка на подключение к чату</label><textarea id="incoming" placeholder="Вставь ссылку"></textarea><button id="inspect">Проверить ссылку</button><div id="review" hidden><p id="detail"></p><button id="accept">Принять</button></div><p id="status" role="status"></p>
+  </details>
+</section>
 <section id="room" hidden><h2 id="who"></h2><button id="reconnect">Подключиться к другу</button><button id="forget" type="button">Удалить из друзей</button><div id="messages" role="log"></div><form id="compose"><label for="message">Личное сообщение</label><input id="message" maxlength="1200" autocomplete="off" required><button>Отправить</button></form><p><a href="https://typing-arena-ai.albert-garbuz89.chatgpt.site/challenge/" target="_blank" rel="noopener noreferrer">Открыть испытание ↗</a> · Скопируй ссылку на испытание в сообщение другу.</p></section>
-<section id="club-sprint" hidden></section><dialog id="viewer"><button id="close-viewer" type="button">Закрыть</button><img id="viewer-image" alt=""><p id="viewer-caption"></p><button id="delete-media" hidden>Удалить</button></dialog></main><script type="module" src="./club.js"></script><script type="module" src="./sprint.js"></script></html>
+<section id="club-sprint" hidden></section><dialog id="viewer"><button id="close-viewer" type="button">Закрыть</button><img id="viewer-image" alt=""><p id="viewer-caption"></p><button id="delete-media" hidden>Удалить</button></dialog></main><script type="module" src="./club.js?v=duel-1"></script><script type="module" src="./sprint.js"></script></html>

@@ -22,3 +22,19 @@
 .post-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.post-grid button{width:100%;aspect-ratio:1}.media-tile:focus-visible{outline:3px solid #bba6ff;outline-offset:-3px}
 #own{border-top:1px solid #343440;margin-top:18px}#own p{font-size:.9rem;color:#aba8b6}#full-club{display:inline-block;margin-top:1rem}
 .embedded,.embedded main{margin:0;padding:0;background:transparent;max-width:none}.embedded main>section:not(.social-sheet),.embedded nav{display:none}.embedded .social-sheet{margin:0}
+
+.duel-card{background:radial-gradient(ellipse at 100% 0%,#18443f 0%,transparent 62%),#111c2a;border-color:#40786f}
+.duel-card__top{display:flex;justify-content:space-between;align-items:start;gap:14px}
+.duel-card h2{margin:0;font-size:clamp(24px,5vw,36px);line-height:1.15}
+.duel-card p{margin:.65rem 0 0}
+.duel-card__versus{flex:none;font-size:clamp(20px,4vw,34px);font-weight:800;font-variant-numeric:tabular-nums;color:#d2fff3;white-space:nowrap}
+.duel-card__versus span{color:#8deed9}
+.duel-card__steps{display:flex;flex-wrap:wrap;gap:.5rem 1.75rem;margin:1.15rem 0;padding-inline-start:1.4rem}
+.duel-card__steps li{padding-inline-start:.15rem;color:#dae8f2}
+.duel-card__steps li::marker{color:#8deed9;font-weight:700}
+.duel-card__link{display:inline-flex;align-items:center;gap:.7rem;min-height:44px;padding:.55rem 1rem;border-radius:8px;background:#8bedd7;color:#072824;font-weight:750;text-decoration:none}
+.duel-card__link:hover{background:#b4f5e6}
+.duel-card__link:focus-visible,#chat-connect summary:focus-visible{outline:2px solid #d2fff3;outline-offset:3px}
+.duel-card .duel-card__note{font-size:.875rem}
+#chat-connect summary{cursor:pointer;color:#aeeada}
+#chat-connect #outbox{margin-top:12px}

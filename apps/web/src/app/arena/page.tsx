@@ -254,13 +254,13 @@ export default function ArenaLobbyPage() {
             </div>
 
             <div className="arena-mode-card arena-mode-card--fullwidth">
-              <h2 className="arena-mode-card__title">Вызвать друга</h2>
-              <a className="button button--secondary" href="../club/">Друзья и личные сообщения →</a>
+              <h2 className="arena-mode-card__title">Дуэль с другом</h2>
               <p className="arena-mode-card__desc">
-                Пройдите тест и поделитесь ссылкой. Друг получит тот же текст и сможет сравнить результат.
+                Создай комнату, отправь другу ссылку и сыграйте вместе. На один заезд 30 секунд.
               </p>
-              <Link href="https://typing-arena-ai.albert-garbuz89.chatgpt.site/duel/" className="button button--primary">Дуэль в реальном времени</Link>
-              <Link href="https://typing-arena-ai.albert-garbuz89.chatgpt.site/challenge/" className="button button--secondary">Открыть испытание</Link>
+              <a href="https://typing-arena-ai.albert-garbuz89.chatgpt.site/duel/" className="button button--primary">Пригласить друга</a>
+              <a className="button button--secondary" href="../club/">Друзья и сообщения</a>
+              <Link href="https://typing-arena-ai.albert-garbuz89.chatgpt.site/challenge/" className="button button--secondary">Испытание на время</Link>
             </div>
           </div>
 
