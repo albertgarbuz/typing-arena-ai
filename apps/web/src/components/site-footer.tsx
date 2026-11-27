@@ -40,6 +40,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li className="site-footer__item">
+              <Link className="site-footer__link" href="/support">
+                Техподдержка
+              </Link>
+            </li>
+            <li className="site-footer__item">
               <Link className="site-footer__link site-footer__link--legal" href="/legal">
                 Оферта и ПДн (152-ФЗ)
               </Link>

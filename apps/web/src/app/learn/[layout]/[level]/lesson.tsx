@@ -1,13 +1,14 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TypingArena } from "@/components/typing/typing-arena";
-import { saveExerciseProgress } from "@/lib/typing/storage";
-import { addXpAndCoins, awardMedal, unlockAchievement } from "@/lib/auth/user";
+import { getProgressRaw, parseProgress, saveExerciseProgress, subscribeStorage } from "@/lib/typing/storage";
+import { addXpAndCoins, awardMedal, getUserRaw, getUserServerSnapshot, subscribeUser, unlockAchievement } from "@/lib/auth/user";
+import { getCourseProgress } from "@/lib/typing/course-progress";
 import { getCourseLevels } from "@/lib/typing/texts";
 import type { Layout, TypingResult } from "@/lib/typing/types";
 import { IconArrowRight } from "@/components/icons";
@@ -30,15 +31,21 @@ export default function LessonPage({ params }: LessonPageProps) {
   const levels = getCourseLevels(layout);
   const currentLevel = levels.find((l) => l.level === levelNum) || levels[0];
 
-  const [activeExerciseIndex, setActiveExerciseIndex] = useState(() => {
-    if (!requestedExId) return 0;
-    const idx = currentLevel.exercises.findIndex((ex) => ex.id === requestedExId);
-    return idx >= 0 ? idx : 0;
-  });
-
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
+  const progressRaw = useSyncExternalStore(subscribeStorage, getProgressRaw, () => "{}");
+  const userRaw = useSyncExternalStore(subscribeUser, getUserRaw, getUserServerSnapshot);
+  const progress = useMemo(() => parseProgress(progressRaw), [progressRaw]);
+  const profile = useMemo(() => {
+    try { return JSON.parse(userRaw) ?? {}; } catch { return {}; }
+  }, [userRaw]);
+  const { isPassed } = getCourseProgress(layout, levels, progress, profile);
+  const selectedIndex = currentLevel.exercises.findIndex(ex => ex.id === (selectedExerciseId ?? requestedExId));
+  const nextIndex = currentLevel.exercises.findIndex(ex => !isPassed(ex));
+  const activeExerciseIndex = selectedIndex >= 0 ? selectedIndex : Math.max(0, nextIndex);
   const activeExercise = currentLevel.exercises[activeExerciseIndex];
 
   const handleLessonComplete = (result: TypingResult) => {
+    setSelectedExerciseId(activeExercise.id);
     saveExerciseProgress(activeExercise.id, result.accuracy, result.cpm);
     const minAcc = activeExercise.minAccuracy || 95;
     if (result.accuracy >= minAcc) {
@@ -101,7 +108,7 @@ export default function LessonPage({ params }: LessonPageProps) {
                 <button
                   key={ex.id}
                   type="button"
-                  onClick={() => setActiveExerciseIndex(idx)}
+                  onClick={() => setSelectedExerciseId(ex.id)}
                   className={`exercise-pill ${
                     activeExerciseIndex === idx ? "exercise-pill--active" : ""
                   }`}
@@ -126,7 +133,7 @@ export default function LessonPage({ params }: LessonPageProps) {
             {hasNextExercise ? (
               <button
                 type="button"
-                onClick={() => setActiveExerciseIndex((prev) => prev + 1)}
+                onClick={() => setSelectedExerciseId(currentLevel.exercises[activeExerciseIndex + 1].id)}
                 className="button button--primary"
               >
                 <span>Следующее упражнение</span>

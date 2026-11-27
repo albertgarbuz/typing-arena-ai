@@ -24,7 +24,8 @@ import {
   unlockTitle,
   type UserProfile,
 } from "@/lib/auth/user";
-import { getProgressRaw, subscribeStorage } from "@/lib/typing/storage";
+import { getProgressRaw, parseProgress, subscribeStorage } from "@/lib/typing/storage";
+import { getCourseLevels } from "@/lib/typing/texts";
 import { IconArrowRight, IconCheck, IconTarget } from "@/components/icons";
 
 export default function ProfilePage() {
@@ -94,24 +95,18 @@ export default function ProfilePage() {
 
   // Exercise Progress
   const progressRaw = useSyncExternalStore(subscribeStorage, getProgressRaw, () => "{}");
-  const progress = useMemo(() => {
-    try {
-      const data = JSON.parse(progressRaw);
-      return (data?.completedExercises || {}) as Record<
-        string,
-        { accuracy: number; cpm: number; passedAt: string }
-      >;
-    } catch {
-      return {};
-    }
-  }, [progressRaw]);
+  const progress = useMemo(() => parseProgress(progressRaw), [progressRaw]);
+  const completedExercises = [...getCourseLevels("ru"), ...getCourseLevels("en")]
+    .flatMap(level => level.exercises)
+    .filter(exercise => (progress[exercise.id]?.accuracy ?? 0) >= exercise.minAccuracy);
+  const completedLessonsCount = new Set([
+    ...completedExercises.map(exercise => exercise.id),
+    ...(user.creditedLessons || []),
+  ]).size;
 
-  const completedLessonsCount = new Set([...Object.keys(progress), ...(user.creditedLessons || [])]).size;
-
-  // Check today's lesson completion
   const todayStr = new Date().toISOString().slice(0, 10);
-  const completedToday = Object.values(progress).some(
-    (p) => p.passedAt && p.passedAt.startsWith(todayStr)
+  const completedToday = completedExercises.some(
+    exercise => progress[exercise.id]?.passedAt?.startsWith(todayStr)
   );
 
   const leagueRu = getLeague(user.ratingRu);

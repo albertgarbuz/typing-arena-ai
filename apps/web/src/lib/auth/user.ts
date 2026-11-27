@@ -27,6 +27,7 @@ export interface UserProfile {
   activeTitle: string;
   campaign?: { days: number; date: string; today: number; characters: number; best: number };
   creditedLessons?: string[];
+  openRuLevels?: number[];
   toys?: string[];
   activeToy?: string;
   dailyAwardDate?: string;
@@ -594,8 +595,10 @@ function archiveKey(email: string, provider: string) {
 }
 
 function restoreLocalProfile(email: string, provider: string): UserProfile {
+  const current = getCurrentUser();
+  if (archiveKey(current.email, current.authProvider) === archiveKey(email, provider)) return current;
   const raw = localStorage.getItem(archiveKey(email, provider));
-  if (!raw) return getCurrentUser();
+  if (!raw) return current;
   const saved = JSON.parse(raw);
   for (const key of progressKeys) {
     if (typeof saved.progress[key] === "string") localStorage.setItem(key, saved.progress[key]);

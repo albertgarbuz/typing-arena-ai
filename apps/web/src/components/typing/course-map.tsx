@@ -5,11 +5,12 @@ import { useMemo, useSyncExternalStore } from "react";
 import {
   getProgressRaw,
   subscribeStorage,
-  type ProgressData,
+  parseProgress,
 } from "@/lib/typing/storage";
 import { getUserRaw, getUserServerSnapshot, subscribeUser } from "@/lib/auth/user";
 import { getCourseLevels } from "@/lib/typing/texts";
-import type { Layout, LessonExercise } from "@/lib/typing/types";
+import { getCourseProgress } from "@/lib/typing/course-progress";
+import type { Layout } from "@/lib/typing/types";
 import { IconCheck, IconArrowRight } from "@/components/icons";
 
 interface CourseMapProps {
@@ -24,36 +25,15 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
     () => "{}"
   );
 
-  const progress = useMemo(() => {
-    try {
-      const data: ProgressData = JSON.parse(progressRaw);
-      return data.completedExercises || {};
-    } catch {
-      return {};
-    }
-  }, [progressRaw]);
-
+  const progress = useMemo(() => parseProgress(progressRaw), [progressRaw]);
   const userRaw = useSyncExternalStore(subscribeUser, getUserRaw, getUserServerSnapshot);
-  const credited = useMemo(() => {
-    try {
-      const ids = JSON.parse(userRaw).creditedLessons;
-      return new Set<string>(Array.isArray(ids) ? ids : []);
-    } catch { return new Set<string>(); }
+  const profile = useMemo(() => {
+    try { return JSON.parse(userRaw) ?? {}; } catch { return {}; }
   }, [userRaw]);
-  const openRuLevels = useMemo(() => {
-    try {const ids=JSON.parse(userRaw).openRuLevels;return new Set<number>(Array.isArray(ids)?ids:[]);}
-    catch {return new Set<number>();}
-  },[userRaw]);
   const levels = getCourseLevels(layout);
-  const isPassed = (ex: LessonExercise) =>
-    credited.has(ex.id) || (progress[ex.id]?.accuracy ?? 0) >= ex.minAccuracy;
-  const isLevelUnlocked = (index: number) =>
-    index === 0 || (layout==="ru" && openRuLevels.has(levels[index].level)) || levels[index-1].exercises.every(isPassed);
-  const lessons = levels.flatMap(level => level.exercises.map(exercise => ({level: level.level, exercise})));
-  const passed = ({exercise}: typeof lessons[number]) => isPassed(exercise);
+  const { isPassed, unlockedThrough, lessons, next } = getCourseProgress(layout, levels, progress, profile);
   const totalLessons = lessons.length;
-  const completedTotal = lessons.filter(passed).length;
-  const next = lessons.find(item => !passed(item));
+  const completedTotal = lessons.filter(({ exercise }) => isPassed(exercise)).length;
   const index = next ? lessons.indexOf(next) : totalLessons;
   const within = index % 10;
   const session = Math.floor(index / 10) * 3 + (within < 3 ? 1 : within < 6 ? 2 : 3);
@@ -108,6 +88,9 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
             {next ? <Link className="text-link" href={`/learn/${layout}/${next.level}?ex=${next.exercise.id}`}>Продолжить · {next.exercise.title} →</Link>
               : <Link className="text-link" href="/test">Измерить итоговую скорость →</Link>}
           </p>
+          <p className="course-progress-desc">
+            <Link className="text-link" href="/support">Проблема с прогрессом? Написать в техподдержку →</Link>
+          </p>
         </div>
         <div className="course-progress-bar-wrap">
           <div className="course-progress-bar-fill" style={{ width: `${percentTotal}%` }} />
@@ -116,8 +99,8 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
 
       {/* Levels list */}
       <div className="course-levels-grid">
-        {levels.map((lvl, index) => {
-          const unlocked = isLevelUnlocked(index);
+        {levels.map((lvl) => {
+          const unlocked = lvl.level <= unlockedThrough;
           const completedCount = lvl.exercises.filter(isPassed).length;
           const isLevelComplete = completedCount === lvl.exercises.length;
 
@@ -132,7 +115,7 @@ export function CourseMap({ layout, onLayoutChange }: CourseMapProps) {
                 <span className="level-card__num">Уровень {lvl.level}</span>
                 {isLevelComplete ? (
                   <span className="level-badge level-badge--complete">
-                    <IconCheck size={12} /> Освоен (10/10)
+                    <IconCheck size={12} /> Освоен ({completedCount}/{lvl.exercises.length})
                   </span>
                 ) : unlocked ? (
                   <span className="level-badge level-badge--active">
